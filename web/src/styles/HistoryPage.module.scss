@@ -1,0 +1,72 @@
+$orange: #ffb300;
+$bg: #0d0d0d;
+$gray: #2a2a2a;
+
+.wrap {
+  max-width: 620px;
+  margin: 0 auto 80px;
+  padding: 20px;
+  color: #fff;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 700;
+  color: $orange;
+  margin-bottom: 24px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card {
+  position: relative;
+  background: $gray;
+  border-radius: 16px;
+  padding: 18px 22px 18px 30px;
+  display: flex;
+  overflow: hidden;
+}
+
+.statusLine {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+}
+
+.amountBlock {
+  width: 100%;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.amount {
+  white-space: nowrap;
+}
+
+.arrow {
+  margin: 0 6px;
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 14px;
+  color: #7d7d7d;
+}
+
+.date {
+  letter-spacing: 0.2px;
+}

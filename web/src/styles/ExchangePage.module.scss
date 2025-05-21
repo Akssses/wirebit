@@ -1,0 +1,203 @@
+$orange: #ffb300;
+$red: #e53935;
+$bg: #0d0d0d;
+$gray: #2a2a2a;
+
+.wrap {
+  max-width: 620px;
+  margin: 0 auto 100px;
+  padding: 20px;
+  color: #fff;
+}
+
+.pageTitle {
+  font-size: 32px;
+  font-weight: 700;
+  color: $orange;
+  margin-bottom: 28px;
+}
+
+.shared {
+  position: relative;
+  margin-bottom: 28px;
+
+  label {
+    position: absolute;
+    top: -14px;
+    left: 22px;
+    background: #0a0a0a;
+    padding: 0 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #cfcfcf;
+  }
+}
+
+.field {
+  @extend .shared;
+
+  input {
+    width: 100%;
+    background: transparent;
+    border: 2px solid $gray;
+    border-radius: 60px;
+    padding: 18px 22px;
+    font-size: 16px;
+    color: #fff;
+    outline: none;
+    transition: border 0.2s;
+
+    &:focus {
+      border-color: $orange;
+    }
+  }
+}
+
+.selectWrap {
+  @extend .shared;
+
+  .selectBtn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: transparent;
+    border: 2px solid $gray;
+    border-radius: 60px;
+    padding: 18px 22px;
+    font-size: 18px;
+    color: #fff;
+    cursor: pointer;
+    transition: border 0.2s;
+
+    &:focus {
+      border-color: $orange;
+    }
+  }
+}
+
+.readonlyField {
+  @extend .shared;
+
+  input {
+    width: 100%;
+    background: transparent;
+    border: 2px solid $gray;
+    border-radius: 60px;
+    padding: 18px 22px;
+    font-size: 16px;
+    color: #fff;
+    cursor: default;
+    user-select: text;
+  }
+
+  .rate {
+    display: block;
+    margin-top: 8px;
+    font-size: 14px;
+    color: #777;
+  }
+}
+
+.placeholder {
+  color: #666;
+}
+
+.chevron {
+  margin-left: auto;
+  transition: transform 0.2s;
+}
+
+.rotated {
+  transform: rotate(180deg);
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: $gray;
+  border-radius: 20px;
+  overflow: hidden;
+  z-index: 30;
+
+  li + li button {
+    border-top: 1px solid #3a3a3a;
+  }
+
+  button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 18px;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+
+    &:hover {
+      background: #1e1e1e;
+    }
+  }
+}
+
+.error input,
+.error .selectBtn {
+  border-color: $red !important;
+}
+
+.msg {
+  color: $red;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.limits {
+  color: #666;
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+.resultBox {
+  border: 2px solid #333;
+  border-radius: 20px;
+  padding: 18px;
+  margin-bottom: 28px;
+}
+
+.resultTitle {
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+
+.resultAmount {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.rate {
+  font-size: 14px;
+  color: #777;
+  margin-top: 8px;
+}
+
+.submit {
+  width: 100%;
+  background: $orange;
+  color: #000;
+  border: none;
+  border-radius: 36px;
+  padding: 16px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 32px;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 0.9;
+  }
+}
