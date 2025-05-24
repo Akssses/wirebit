@@ -1,0 +1,103 @@
+.container {
+  padding-bottom: 100px; /* чтобы не заслонять футер/навигацию */
+}
+
+.hero {
+  background: linear-gradient(135deg, #ffd12e, #ff7f00);
+  color: #000;
+  text-align: center;
+  padding: 60px 20px;
+  border-radius: 0 0 20px 20px;
+}
+.heroInner {
+  max-width: 480px;
+  margin: 0 auto;
+
+  img {
+    margin: 0 auto;
+  }
+}
+.title {
+  font-size: 20px;
+  margin: 16px 0;
+}
+.controls {
+  margin: 20px 0;
+}
+.langButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid #000;
+  border-radius: 24px;
+  background: transparent;
+  font-size: 14px;
+  cursor: pointer;
+}
+.pairs {
+  font-size: 14px;
+  margin-top: 12px;
+}
+
+.support {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #121212;
+  border-radius: 12px;
+  padding: 16px;
+  margin: -40px 20px 0;
+  /* тень, если нужно */
+}
+.supportInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.supportIcon {
+  color: #ffd12e;
+}
+.supportTitle {
+  font-size: 18px;
+  margin: 0;
+}
+.supportSubtitle {
+  font-size: 14px;
+  color: #888;
+  margin: 2px 0 0;
+}
+.supportButton {
+  background: #ffd12e;
+  color: #000;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.about {
+  background: #121212;
+  border-radius: 12px;
+  padding: 24px 20px;
+  margin: 24px 20px;
+}
+.aboutTitle {
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  background: #ffd12e;
+  border-radius: 50%;
+}
+.aboutText {
+  font-size: 16px;
+  line-height: 1.5;
+  color: #ddd;
+}
