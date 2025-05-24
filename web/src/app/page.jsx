@@ -52,7 +52,9 @@ export default function Home() {
             <p className={s.supportSubtitle}>Решим ваш вопрос</p>
           </div>
         </div>
-        <button className={s.supportButton}>Написать</button>
+        <a href="mailto:info@wirebit.net" className={s.supportButton}>
+          Написать
+        </a>
       </section>
 
       <section className={s.about}>

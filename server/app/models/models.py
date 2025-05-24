@@ -2,6 +2,7 @@ from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Float, Date
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import enum
+from passlib.hash import bcrypt
 
 from app.database import Base
 
@@ -25,16 +26,23 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    telegram_id = Column(String, unique=True, index=True)
-    username = Column(String, index=True)
-    email = Column(String, unique=True, index=True, nullable=True)
+    username = Column(String, unique=True, index=True)
+    email = Column(String, unique=True, index=True)
+    hashed_password = Column(String)
     role = Column(Enum(UserRole), default=UserRole.USER)
+    is_active = Column(Boolean, default=True)
     verification_status = Column(Enum(VerificationStatus), default=VerificationStatus.UNVERIFIED)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     orders = relationship("Order", back_populates="user")
     verification = relationship("Verification", back_populates="user", uselist=False)
+
+    def set_password(self, password: str):
+        self.hashed_password = bcrypt.hash(password)
+
+    def verify_password(self, password: str) -> bool:
+        return bcrypt.verify(password, self.hashed_password)
 
 class Order(Base):
     __tablename__ = "orders"
