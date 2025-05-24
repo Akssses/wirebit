@@ -1,0 +1,9 @@
+README.md
+setup.py
+app/__init__.py
+app/database.py
+wirebit.egg-info/PKG-INFO
+wirebit.egg-info/SOURCES.txt
+wirebit.egg-info/dependency_links.txt
+wirebit.egg-info/requires.txt
+wirebit.egg-info/top_level.txt
