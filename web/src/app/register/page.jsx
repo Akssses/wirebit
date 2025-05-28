@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import s from "@/styles/Auth.module.scss";
 import Link from "next/link";
-import { useAuth } from "@/contexts/AuthContext";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -13,7 +12,6 @@ export default function RegisterPage() {
     confirmPassword: "",
   });
   const [error, setError] = useState("");
-  const { register } = useAuth();
 
   const handleChange = (e) => {
     const { name, value } = e.target;

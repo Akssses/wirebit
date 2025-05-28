@@ -9,7 +9,7 @@ const icons = {
   DOGE: "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/doge.svg",
 };
 
-const data = [
+const MOCK_HISTORY = [
   {
     id: 1,
     from: 1000,
@@ -77,7 +77,7 @@ export default function HistoryPage() {
     <div className={s.wrap}>
       <h1 className={s.title}>История</h1>
       <ul className={s.list}>
-        {data.map((item) => {
+        {MOCK_HISTORY.map((item) => {
           const st = statusMap[item.status];
           return (
             <li key={item.id} className={s.card}>

@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import s from "@/styles/Auth.module.scss";
 import Link from "next/link";
-import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -11,7 +11,7 @@ export default function LoginPage() {
     password: "",
   });
   const [error, setError] = useState("");
-  const { login } = useAuth();
+  const router = useRouter();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -21,22 +21,20 @@ export default function LoginPage() {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     setError("");
 
-    try {
-      await login(formData.username, formData.password);
-    } catch (error) {
-      setError(
-        error.response?.data?.detail || "Произошла ошибка при входе в систему"
-      );
+    if (formData.username && formData.password) {
+      router.push("/");
+    } else {
+      setError("Пожалуйста, заполните все поля");
     }
   };
 
   return (
     <div className={s.wrapper}>
-      <div className={s.logoBlock}>
+       <div className={s.logoBlock}>
         <img
           src="./assets/images/logo.png"
           alt="WireBit Logo"
@@ -47,22 +45,18 @@ export default function LoginPage() {
 
       <div className={s.authBox}>
         <div className={s.header}>
-          <h2>Авторизация</h2>
-          <button className={s.langSwitch}>🌐 Ru</button>
+          <h2>Вход</h2>
         </div>
 
         <form onSubmit={handleSubmit}>
-          {error && <div className={s.error}>{error}</div>}
-
           <div className={s.formGroup}>
-            <label>Логин</label>
+            <label>Имя пользователя</label>
             <input
               type="text"
               name="username"
               value={formData.username}
               onChange={handleChange}
-              placeholder="Введите логин"
-              required
+              placeholder="Введите имя пользователя"
             />
           </div>
 
@@ -74,13 +68,10 @@ export default function LoginPage() {
               value={formData.password}
               onChange={handleChange}
               placeholder="Введите пароль"
-              required
             />
           </div>
 
-          <div className={s.forgotPassword}>
-            <a href="#">Забыли пароль?</a>
-          </div>
+          {error && <div className={s.error}>{error}</div>}
 
           <button type="submit" className={s.loginBtn}>
             Войти
