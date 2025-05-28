@@ -15,7 +15,7 @@ const coins = [
   {
     code: "ETH",
     name: "Ethereum",
-    icon: "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/eth.svg",
+    icon: "https://raw.githubusercontent.com/spothq/cryptocukrrency-icons/master/svg/color/eth.svg",
   },
   {
     code: "DOGE",
