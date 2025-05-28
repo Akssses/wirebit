@@ -1,177 +1,316 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
+import { useState, useEffect } from "react";
 import { FiChevronDown } from "react-icons/fi";
 import cx from "classnames";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import s from "@/styles/ExchangePage.module.scss";
-
-const coins = [
-  {
-    code: "USDT",
-    name: "Tether USDT",
-    icon: "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/usdt.svg",
-  },
-  {
-    code: "ETH",
-    name: "Ethereum",
-    icon: "https://raw.githubusercontent.com/spothq/cryptocukrrency-icons/master/svg/color/eth.svg",
-  },
-  {
-    code: "DOGE",
-    name: "Dogecoin",
-    icon: "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/doge.svg",
-  },
-  {
-    code: "TRX",
-    name: "Tron TRX",
-    icon: "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/trx.svg",
-  },
-];
-
-const rates = {
-  USDT_DOGE: 5.97431569,
-  USDT_ETH: 0.00029,
-  DOGE_USDT: 0.1673,
-};
+import api from "@/services/api";
+import StatusChecker from "@/components/StatusChecker";
 
 export default function ExchangePage() {
   const [from, setFrom] = useState(null);
   const [to, setTo] = useState(null);
   const [amount, setAmount] = useState("");
   const [wallet, setWallet] = useState("");
+  const [email, setEmail] = useState("");
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [currencies, setCurrencies] = useState([]);
+  const [availableTo, setAvailableTo] = useState([]);
+  const [directions, setDirections] = useState([]);
 
-  const getRate = () =>
-    from && to ? rates[`${from.code}_${to.code}`] ?? null : null;
+  // Загрузка валют при монтировании
+  useEffect(() => {
+    loadCurrencies();
+    loadDirections();
+  }, []);
+
+  // Загрузка доступных валют для получения при изменении from
+  useEffect(() => {
+    if (from) {
+      loadAvailableTo(from.title);
+    } else {
+      setAvailableTo([]);
+      setTo(null);
+    }
+  }, [from]);
+
+  const loadCurrencies = async () => {
+    try {
+      const data = await api.getCurrencies();
+      setCurrencies(data);
+    } catch (error) {
+      toast.error("Ошибка загрузки валют");
+    }
+  };
+
+  const loadAvailableTo = async (fromCurrency) => {
+    try {
+      const data = await api.getAvailableTo(fromCurrency);
+      setAvailableTo(data);
+    } catch (error) {
+      toast.error("Ошибка загрузки доступных валют");
+    }
+  };
+
+  const loadDirections = async () => {
+    try {
+      const data = await api.getDirections();
+      setDirections(data);
+    } catch (error) {
+      toast.error("Ошибка загрузки направлений обмена");
+    }
+  };
+
+  const getDirection = () => {
+    if (!from || !to) return null;
+    return directions.find((d) => d.from === from.title && d.to === to.title);
+  };
+
+  const getRate = () => {
+    const direction = getDirection();
+    return direction ? direction.rate : null;
+  };
 
   const receive = () => {
-    const r = getRate();
-    return r ? (+amount || 0) * r : 0;
+    const rate = getRate();
+    return rate ? (+amount || 0) * rate : 0;
   };
 
   const validate = () => {
     const e = {};
     if (!from) e.from = true;
     if (!to) e.to = true;
-    if (!amount || +amount <= 0) e.amount = "Введите сумму";
-    else if (+amount < 270 || +amount > 1000) e.amount = "Допустимо 270 – 1000";
-    if (!wallet.trim()) e.wallet = "Укажите ID";
+
+    const direction = getDirection();
+    if (direction) {
+      if (!amount || +amount <= 0) {
+        e.amount = "Введите сумму";
+      } else if (+amount < direction.min || +amount > direction.max) {
+        e.amount = `Допустимо ${direction.min} – ${direction.max}`;
+      }
+    } else if (!amount || +amount <= 0) {
+      e.amount = "Введите сумму";
+    }
+
+    if (!wallet.trim()) e.wallet = "Укажите ID кошелька";
+    if (!email.trim()) e.email = "Укажите Email";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      e.email = "Некорректный Email";
+    }
+
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = (ev) => {
+  const handleSubmit = async (ev) => {
     ev.preventDefault();
     if (!validate()) return;
-    alert("🎉 Форма валидна, отправляем…");
+
+    const direction = getDirection();
+    if (!direction) {
+      toast.error("Направление обмена не найдено");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const result = await api.createExchange({
+        direction_id: direction.direction_id,
+        amount: parseFloat(amount),
+        account: wallet,
+        email: email,
+      });
+
+      if (result.success) {
+        toast.success(result.message || "Заявка успешно создана!");
+        // Очистка формы
+        setAmount("");
+        setWallet("");
+        setEmail("");
+        setFrom(null);
+        setTo(null);
+
+        // Можно сохранить bid_id для отслеживания статуса
+        if (result.bid_id) {
+          localStorage.setItem("lastBidId", result.bid_id);
+        }
+      } else {
+        toast.error(result.message || "Ошибка создания заявки");
+      }
+    } catch (error) {
+      toast.error(error.message || "Ошибка при отправке заявки");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <form className={s.wrap} onSubmit={handleSubmit}>
-      <h1 className={s.pageTitle}>Обмен валют</h1>
+    <>
+      <form className={s.wrap} onSubmit={handleSubmit}>
+        <h1 className={s.pageTitle}>Обмен валют</h1>
 
-      <CurrencySelect
-        label="Отдаю"
-        value={from}
-        onChange={setFrom}
-        error={errors.from}
-      />
-
-      <CurrencySelect
-        label="Получаю"
-        value={to}
-        onChange={setTo}
-        exclude={from?.code}
-        error={errors.to}
-      />
-
-      <div className={cx(s.field, errors.amount && s.error)}>
-        <label>Сумма*</label>
-        <input
-          type="number"
-          placeholder="00.00"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
+        <CurrencySelect
+          label="Отдаю"
+          value={from}
+          onChange={setFrom}
+          currencies={currencies}
+          error={errors.from}
         />
-        {errors.amount && <span className={s.msg}>{errors.amount}</span>}
-        <div className="flex justify-end gap-[10px] mr-[20px]">
-          {!errors.amount && <span className={s.limits}>Min: 270</span>}
-          {!errors.amount && <span className={s.limits}>Max: 1000</span>}
-        </div>
-      </div>
 
-      {from && to && amount && (
-        <div className={s.readonlyField}>
-          <label>Вы получите</label>
-          <input value={receive().toFixed(6)} readOnly tabIndex={-1} />
-          {getRate() && (
-            <span className={s.rate}>
-              Курс: 1 {from.code} = {getRate()} {to.code}
-            </span>
+        <CurrencySelect
+          label="Получаю"
+          value={to}
+          onChange={setTo}
+          currencies={availableTo}
+          error={errors.to}
+          disabled={!from}
+        />
+
+        <div className={cx(s.field, errors.amount && s.error)}>
+          <label>Сумма*</label>
+          <input
+            type="number"
+            placeholder="00.00"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            step="0.01"
+          />
+          {errors.amount && <span className={s.msg}>{errors.amount}</span>}
+          {!errors.amount && getDirection() && (
+            <div className="flex justify-end gap-[10px] mr-[20px]">
+              <span className={s.limits}>Min: {getDirection().min}</span>
+              <span className={s.limits}>Max: {getDirection().max}</span>
+            </div>
           )}
         </div>
-      )}
 
-      <div className={cx(s.field, errors.wallet && s.error)}>
-        <label>
-          ID кошелька получателя<span>*</span>
-        </label>
-        <input
-          placeholder="Укажите ID"
-          value={wallet}
-          onChange={(e) => setWallet(e.target.value)}
-        />
-        {errors.wallet && <span className={s.msg}>{errors.wallet}</span>}
-      </div>
+        {from && to && amount && getRate() && (
+          <div className={s.readonlyField}>
+            <label>Вы получите</label>
+            <input value={receive().toFixed(6)} readOnly tabIndex={-1} />
+            <span className={s.rate}>
+              Курс: 1 {from.title} = {getRate()} {to.title}
+            </span>
+          </div>
+        )}
 
-      <div className={s.field}>
-        <label>Персональная информация</label>
-        <input placeholder="Укажите Email" type="email" />
-      </div>
+        <div className={cx(s.field, errors.wallet && s.error)}>
+          <label>
+            ID кошелька получателя<span>*</span>
+          </label>
+          <input
+            placeholder="Укажите ID"
+            value={wallet}
+            onChange={(e) => setWallet(e.target.value)}
+          />
+          {errors.wallet && <span className={s.msg}>{errors.wallet}</span>}
+        </div>
 
-      <button className={s.submit}>Подтвердить</button>
-    </form>
+        <div className={cx(s.field, errors.email && s.error)}>
+          <label>
+            Персональная информация<span>*</span>
+          </label>
+          <input
+            placeholder="Укажите Email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          {errors.email && <span className={s.msg}>{errors.email}</span>}
+        </div>
+
+        <button className={s.submit} disabled={loading}>
+          {loading ? "Обработка..." : "Подтвердить"}
+        </button>
+      </form>
+
+      <StatusChecker />
+
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+    </>
   );
 }
 
-function CurrencySelect({ label, value, onChange, exclude, error }) {
+function CurrencySelect({
+  label,
+  value,
+  onChange,
+  currencies,
+  error,
+  disabled,
+}) {
   const [open, setOpen] = useState(false);
-  const list = exclude ? coins.filter((c) => c.code !== exclude) : coins;
 
   return (
-    <div className={cx(s.selectWrap, error && s.error)}>
+    <div className={cx(s.selectWrap, error && s.error, disabled && s.disabled)}>
       <label>{label}</label>
 
       <button
         type="button"
         className={s.selectBtn}
-        onClick={() => setOpen(!open)}
+        onClick={() => !disabled && setOpen(!open)}
+        disabled={disabled}
       >
         {value ? (
           <>
-            <Image src={value.icon} alt="" width={28} height={28} />
-            <span>{value.name}</span>
+            {value.logo && (
+              <img
+                src={value.logo}
+                alt=""
+                width={28}
+                height={28}
+                onError={(e) => {
+                  e.target.style.display = "none";
+                }}
+              />
+            )}
+            <span>{value.title}</span>
           </>
         ) : (
-          <span className={s.placeholder}>Выберите валюту</span>
+          <span className={s.placeholder}>
+            {disabled ? "Сначала выберите валюту отправки" : "Выберите валюту"}
+          </span>
         )}
-        <FiChevronDown className={cx(s.chevron, open && s.rotated)} size={22} />
+        <FiChevronDown className={cx(s.chevron, open && s.open)} />
       </button>
 
-      {open && (
+      {open && !disabled && (
         <ul className={s.dropdown}>
-          {list.map((coin) => (
-            <li key={coin.code}>
+          {currencies.map((currency) => (
+            <li key={currency.title}>
               <button
                 type="button"
                 onClick={() => {
-                  onChange(coin);
+                  onChange(currency);
                   setOpen(false);
                 }}
               >
-                <Image src={coin.icon} alt="" width={24} height={24} />
-                {coin.name}
+                {currency.logo && (
+                  <img
+                    src={currency.logo}
+                    alt=""
+                    width={24}
+                    height={24}
+                    onError={(e) => {
+                      e.target.style.display = "none";
+                    }}
+                  />
+                )}
+                {currency.title}
               </button>
             </li>
           ))}

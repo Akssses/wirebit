@@ -8,7 +8,7 @@ $gray: #2a2a2a;
   margin: 0 auto 100px;
   padding: 20px;
   color: #fff;
-}k
+}
 
 .pageTitle {
   font-size: 32px;
@@ -56,6 +56,14 @@ $gray: #2a2a2a;
 .selectWrap {
   @extend .shared;
 
+  &.disabled {
+    opacity: 0.6;
+
+    .selectBtn {
+      cursor: not-allowed;
+    }
+  }
+
   .selectBtn {
     width: 100%;
     display: flex;
@@ -72,6 +80,10 @@ $gray: #2a2a2a;
 
     &:focus {
       border-color: $orange;
+    }
+
+    &:disabled {
+      cursor: not-allowed;
     }
   }
 }
@@ -106,10 +118,10 @@ $gray: #2a2a2a;
 .chevron {
   margin-left: auto;
   transition: transform 0.2s;
-}
 
-.rotated {
-  transform: rotate(180deg);
+  &.open {
+    transform: rotate(180deg);
+  }
 }
 
 .dropdown {
@@ -197,7 +209,12 @@ $gray: #2a2a2a;
   margin-top: 32px;
   transition: opacity 0.2s;
 
-  &:hover {
+  &:hover:not(:disabled) {
     opacity: 0.9;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }

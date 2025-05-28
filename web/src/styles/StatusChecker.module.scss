@@ -1,0 +1,104 @@
+$orange: #ffb300;
+$gray: #2a2a2a;
+
+.container {
+  max-width: 620px;
+  margin: 40px auto;
+  padding: 20px;
+  background: #1a1a1a;
+  border-radius: 20px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 20px;
+}
+
+.inputGroup {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+
+  input {
+    flex: 1;
+    background: transparent;
+    border: 2px solid $gray;
+    border-radius: 60px;
+    padding: 14px 20px;
+    font-size: 16px;
+    color: #fff;
+    outline: none;
+    transition: border 0.2s;
+
+    &:focus {
+      border-color: $orange;
+    }
+  }
+
+  button {
+    background: $orange;
+    color: #000;
+    border: none;
+    border-radius: 60px;
+    padding: 14px 28px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+
+    &:hover:not(:disabled) {
+      opacity: 0.9;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.statusCard {
+  background: #0d0d0d;
+  border: 2px solid $gray;
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.statusHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+
+  span:first-child {
+    color: #999;
+    font-size: 14px;
+  }
+}
+
+.statusBadge {
+  padding: 6px 16px;
+  border-radius: 20px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.statusDetails {
+  border-top: 1px solid $gray;
+  padding-top: 16px;
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  color: #ccc;
+  font-size: 14px;
+
+  span:first-child {
+    color: #999;
+  }
+}
