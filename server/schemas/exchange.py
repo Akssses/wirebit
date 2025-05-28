@@ -1,5 +1,5 @@
-from pydantic import BaseModel, EmailStr, Field
-from typing import Optional, List, Dict, Any
+from pydantic import BaseModel, Field
+from typing import Optional, List, Dict, Any, Union
 
 
 class DirectionResponse(BaseModel):
@@ -24,14 +24,18 @@ class CurrencyResponse(BaseModel):
 class CreateExchangeRequest(BaseModel):
     direction_id: str
     amount: float = Field(gt=0)
-    account: str = Field(min_length=1)
-    email: EmailStr
+    account_to: str = Field(min_length=1, alias="account_to")
+    cf6: str = Field(alias="cf6")
+    
+    class Config:
+        populate_by_name = True
 
 
 class CreateExchangeResponse(BaseModel):
     success: bool
-    bid_id: Optional[str] = None
+    bid_id: Optional[Union[str, int]] = None
     message: Optional[str] = None
+    data: Optional[Dict[str, Any]] = None
 
 
 class StatusResponse(BaseModel):

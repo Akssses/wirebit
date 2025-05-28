@@ -79,6 +79,56 @@ export default function ExchangePage() {
     return rate ? (+amount || 0) * rate : 0;
   };
 
+  const validateWalletAddress = (address, currency) => {
+    if (!address.trim()) return "Укажите ID кошелька";
+
+    // Basic validation for different currencies
+    const trimmedAddress = address.trim();
+
+    if (currency.includes("Bitcoin") || currency.includes("BTC")) {
+      // Bitcoin address validation (basic)
+      if (
+        !/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$|^bc1[a-z0-9]{39,59}$/.test(
+          trimmedAddress
+        )
+      ) {
+        return "Неправильный формат Bitcoin адреса";
+      }
+    } else if (
+      currency.includes("Ethereum") ||
+      currency.includes("ETH") ||
+      currency.includes("ERC20")
+    ) {
+      // Ethereum address validation
+      if (!/^0x[a-fA-F0-9]{40}$/.test(trimmedAddress)) {
+        return "Неправильный формат Ethereum адреса";
+      }
+    } else if (
+      currency.includes("Tether TRC20") ||
+      currency.includes("TRON") ||
+      currency.includes("TRX")
+    ) {
+      // TRON address validation
+      if (!/^T[A-Za-z1-9]{33}$/.test(trimmedAddress)) {
+        return "Неправильный формат TRON адреса";
+      }
+    } else if (currency.includes("DOGE")) {
+      // Dogecoin address validation
+      if (
+        !/^D[5-9A-HJ-NP-U]{1}[1-9A-HJ-NP-Za-km-z]{32}$/.test(trimmedAddress)
+      ) {
+        return "Неправильный формат Dogecoin адреса";
+      }
+    }
+
+    // For other currencies, just check minimum length
+    if (trimmedAddress.length < 10) {
+      return "Адрес слишком короткий";
+    }
+
+    return null;
+  };
+
   const validate = () => {
     const e = {};
     if (!from) e.from = true;
@@ -95,7 +145,14 @@ export default function ExchangePage() {
       e.amount = "Введите сумму";
     }
 
-    if (!wallet.trim()) e.wallet = "Укажите ID кошелька";
+    // Validate wallet address with currency-specific rules
+    if (to) {
+      const walletError = validateWalletAddress(wallet, to.title);
+      if (walletError) e.wallet = walletError;
+    } else if (!wallet.trim()) {
+      e.wallet = "Укажите ID кошелька";
+    }
+
     if (!email.trim()) e.email = "Укажите Email";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       e.email = "Некорректный Email";
@@ -120,8 +177,8 @@ export default function ExchangePage() {
       const result = await api.createExchange({
         direction_id: direction.direction_id,
         amount: parseFloat(amount),
-        account: wallet,
-        email: email,
+        account_to: wallet,
+        cf6: email,
       });
 
       if (result.success) {

@@ -27,19 +27,40 @@ class ApiService {
 
   // Получить все направления обмена
   async getDirections() {
-    return this.request("/directions");
+    try {
+      const response = await this.request("/directions");
+      // Backend now returns the correct format directly
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      console.error("Error loading directions:", error);
+      return [];
+    }
   }
 
   // Получить список валют для отправки
   async getCurrencies() {
-    return this.request("/currencies");
+    try {
+      const response = await this.request("/currencies");
+      // Backend returns array directly, no need to extract .data
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      console.error("Error loading currencies:", error);
+      return [];
+    }
   }
 
   // Получить доступные валюты для получения
   async getAvailableTo(fromCurrency) {
-    return this.request(
-      `/available-to?from=${encodeURIComponent(fromCurrency)}`
-    );
+    try {
+      const response = await this.request(
+        `/available-to?from=${encodeURIComponent(fromCurrency)}`
+      );
+      // Backend returns array directly, no need to extract .data
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      console.error("Error loading available currencies:", error);
+      return [];
+    }
   }
 
   // Создать заявку на обмен
@@ -48,6 +69,8 @@ class ApiService {
       method: "POST",
       body: JSON.stringify(data),
     });
+
+    // Backend returns the correct format, just return as-is
     return response;
   }
 

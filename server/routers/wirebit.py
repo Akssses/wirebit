@@ -1,13 +1,18 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field, validator
 from typing import List, Optional, Dict, Any
 import logging
-from api.wirebit_api import create_wirebit_client
+from api.wirebit_api import create_wirebit_client, CreateBidRequest
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
-# ... existing code ...
+# Pydantic models
+class DirectionRequest(BaseModel):
+    from_currency: str = Field(..., description="Currency to exchange from", alias="from")
+
+class StatusRequest(BaseModel):
+    exchange_id: str = Field(..., description="Exchange ID to check status")
 
 @router.get("/api/directions")
 async def get_directions():
@@ -31,44 +36,33 @@ async def get_currencies():
         logger.error(f"Failed to get currencies: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/api/available-to")
-async def get_available_to(request: DirectionRequest):
-    """Get available currencies for a specific direction"""
+@router.get("/api/available-to")
+async def get_available_to(from_currency: str = Query(..., alias="from")):
+    """Get available currencies for a specific from currency"""
     try:
         async with create_wirebit_client() as client:
-            available = await client.get_available_currencies(request.direction_id)
+            available = await client.get_available_currencies(from_currency)
             return {"success": True, "data": available}
     except Exception as e:
         logger.error(f"Failed to get available currencies: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/api/create-exchange")
-async def create_exchange(request: CreateExchangeRequest):
+async def create_exchange(request: CreateBidRequest):
     """Create a new exchange request"""
     try:
+        logger.info(f"Creating exchange with data: {request}")
         async with create_wirebit_client() as client:
-            result = await client.create_bid(
-                direction_id=request.direction_id,
-                amount=request.amount,
-                wallet=request.wallet,
-                email=request.email
-            )
+            result = await client.create_bid(request)
+            logger.info(f"Exchange created successfully: {result}")
             return {"success": True, "data": result}
+    except HTTPException as e:
+        logger.error(f"HTTP exception in create_exchange: {e.detail}")
+        # Re-raise HTTP exceptions as-is
+        raise e
     except Exception as e:
-        logger.error(f"Failed to create exchange: {str(e)}")
-        # Provide more specific error messages based on the exception
-        if "Invalid wallet address" in str(e):
-            raise HTTPException(status_code=400, detail="Invalid wallet address format")
-        elif "Invalid email" in str(e):
-            raise HTTPException(status_code=400, detail="Invalid email format")
-        elif "Amount too small" in str(e):
-            raise HTTPException(status_code=400, detail=str(e))
-        elif "Amount exceeds" in str(e):
-            raise HTTPException(status_code=400, detail=str(e))
-        elif "Invalid exchange direction" in str(e):
-            raise HTTPException(status_code=400, detail="Invalid exchange direction")
-        else:
-            raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Unexpected error in create_exchange: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
 @router.post("/api/status")
 async def check_status(request: StatusRequest):

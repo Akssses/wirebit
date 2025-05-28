@@ -167,26 +167,63 @@ class WirebitClient:
             logger.error(f"Error getting directions: {str(e)}")
             raise
     
-    def create_bid(self, direction_id: str, amount: float, account: str, email: str) -> Dict[str, Any]:
+    def create_bid(self, direction_id: str, amount: float, account_to: str, cf6: str) -> Dict[str, Any]:
         """Create exchange bid"""
         try:
+            # Use form data with correct parameter names
             payload = {
-                "direction_id": direction_id,
-                "amount": amount,
-                "account": account,
-                "email": email
+                "direction_id": str(direction_id),
+                "calc_amount": str(amount),
+                "calc_action": "1",  # 1 = amount I'm giving
+                "account2": account_to,
+                "cf6": cf6 or "test@example.com"
             }
             
-            response = self._make_request("POST", "create_bid", json=payload)
+            # Use form headers for this request
+            form_headers = {
+                "API-KEY": settings.wirebit_api_key,
+                "API-LOGIN": settings.wirebit_api_login,
+                "Content-Type": "application/x-www-form-urlencoded"
+            }
             
-            if response.get("error") == 0:
+            response = requests.post(
+                f"{self.base_url}create_bid",
+                headers=form_headers,
+                data=payload,
+                timeout=30
+            )
+            response.raise_for_status()
+            data = response.json()
+            
+            if data.get("error") == "0" or data.get("error") == 0:
                 return {
                     "success": True,
-                    "bid_id": response.get("data", {}).get("bid_id"),
-                    "message": "Заявка успешно создана"
+                    "bid_id": data.get("data", {}).get("id"),
+                    "message": "Заявка успешно создана",
+                    "data": data.get("data", {})
                 }
             else:
-                error_msg = response.get("error_text", "Не удалось создать заявку")
+                error_msg = data.get("error_text", "Не удалось создать заявку")
+                logger.error(f"Wirebit API error: {error_msg}")
+                logger.error(f"Full Wirebit response: {data}")
+                
+                # Try to extract more detailed error info
+                error_fields = data.get("error_fields", {})
+                if error_fields:
+                    logger.error(f"Error fields: {error_fields}")
+                    
+                    # Check for specific field errors
+                    if "account2" in error_fields:
+                        error_msg = "Неправильный адрес кошелька получателя. Проверьте формат адреса."
+                    elif "calc_amount" in error_fields:
+                        error_msg = "Неправильная сумма обмена. Проверьте минимальные и максимальные лимиты."
+                    elif "cf6" in error_fields:
+                        error_msg = "Неправильный формат email адреса."
+                
+                # Generic error message improvements
+                if error_msg == "Ошибка!":
+                    error_msg = "Ошибка создания заявки. Проверьте правильность введенных данных."
+                
                 return {
                     "success": False,
                     "message": error_msg

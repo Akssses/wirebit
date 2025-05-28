@@ -86,8 +86,8 @@ async def create_exchange(request: CreateExchangeRequest):
         result = wirebit_client.create_bid(
             direction_id=request.direction_id,
             amount=request.amount,
-            account=request.account,
-            email=request.email
+            account_to=request.account_to,
+            cf6=request.cf6
         )
         
         return CreateExchangeResponse(**result)
