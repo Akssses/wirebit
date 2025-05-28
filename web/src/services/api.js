@@ -1,3 +1,5 @@
+import authApi from "./authApi";
+
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
@@ -7,6 +9,8 @@ class ApiService {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         headers: {
           "Content-Type": "application/json",
+          // Add auth headers if user is logged in
+          ...(authApi.isAuthenticated() ? authApi.getAuthHeaders() : {}),
           ...options.headers,
         },
         ...options,
@@ -15,7 +19,7 @@ class ApiService {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Ошибка сервера");
+        throw new Error(data.message || data.detail || "Ошибка сервера");
       }
 
       return data;
@@ -29,7 +33,7 @@ class ApiService {
   async getDirections() {
     try {
       const response = await this.request("/directions");
-      // Backend now returns the correct format directly
+      // Backend returns the correct format directly
       return Array.isArray(response) ? response : [];
     } catch (error) {
       console.error("Error loading directions:", error);
@@ -63,7 +67,7 @@ class ApiService {
     }
   }
 
-  // Создать заявку на обмен
+  // Создать заявку на обмен (теперь поддерживает аутентификацию)
   async createExchange(data) {
     const response = await this.request("/create-exchange", {
       method: "POST",

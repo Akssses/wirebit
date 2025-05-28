@@ -1,8 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import s from "@/styles/Auth.module.scss";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -12,6 +16,16 @@ export default function RegisterPage() {
     confirmPassword: "",
   });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const { register, isAuthenticated } = useAuth();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push("/");
+    }
+  }, [isAuthenticated, router]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -19,14 +33,52 @@ export default function RegisterPage() {
       ...prev,
       [name]: value,
     }));
+    // Clear error when user starts typing
+    if (error) setError("");
+  };
+
+  const validateForm = () => {
+    if (
+      !formData.username ||
+      !formData.email ||
+      !formData.password ||
+      !formData.confirmPassword
+    ) {
+      setError("Пожалуйста, заполните все поля");
+      return false;
+    }
+
+    if (formData.username.length < 3) {
+      setError("Имя пользователя должно содержать минимум 3 символа");
+      return false;
+    }
+
+    if (formData.password.length < 6) {
+      setError("Пароль должен содержать минимум 6 символов");
+      return false;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Пароли не совпадают");
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError("Введите корректный email адрес");
+      return false;
+    }
+
+    return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
-    if (formData.password !== formData.confirmPassword) {
-      setError("Пароли не совпадают");
+    if (!validateForm()) {
+      setLoading(false);
       return;
     }
 
@@ -36,10 +88,14 @@ export default function RegisterPage() {
         email: formData.email,
         password: formData.password,
       });
+
+      toast.success("Регистрация прошла успешно! Добро пожаловать!");
+      router.push("/exchange");
     } catch (error) {
-      setError(
-        error.response?.data?.detail || "Произошла ошибка при регистрации"
-      );
+      console.error("Registration error:", error);
+      setError(error.message || "Произошла ошибка при регистрации");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -57,7 +113,6 @@ export default function RegisterPage() {
       <div className={s.authBox}>
         <div className={s.header}>
           <h2>Регистрация</h2>
-          <button className={s.langSwitch}>🌐 Ru</button>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -70,7 +125,8 @@ export default function RegisterPage() {
               name="username"
               value={formData.username}
               onChange={handleChange}
-              placeholder="Введите имя"
+              placeholder="Введите имя пользователя"
+              disabled={loading}
               required
             />
           </div>
@@ -83,6 +139,7 @@ export default function RegisterPage() {
               value={formData.email}
               onChange={handleChange}
               placeholder="Введите email"
+              disabled={loading}
               required
             />
           </div>
@@ -94,7 +151,8 @@ export default function RegisterPage() {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              placeholder="Введите пароль"
+              placeholder="Введите пароль (минимум 6 символов)"
+              disabled={loading}
               required
             />
           </div>
@@ -107,12 +165,13 @@ export default function RegisterPage() {
               value={formData.confirmPassword}
               onChange={handleChange}
               placeholder="Повторите пароль"
+              disabled={loading}
               required
             />
           </div>
 
-          <button type="submit" className={s.loginBtn}>
-            Зарегистрироваться
+          <button type="submit" className={s.loginBtn} disabled={loading}>
+            {loading ? "Регистрация..." : "Зарегистрироваться"}
           </button>
         </form>
 
@@ -120,6 +179,19 @@ export default function RegisterPage() {
           Уже есть аккаунт? <Link href="/login">Войти</Link>
         </p>
       </div>
+
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </div>
   );
 }

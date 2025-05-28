@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FiChevronDown } from "react-icons/fi";
+import { FiChevronDown, FiUser, FiInfo } from "react-icons/fi";
 import cx from "classnames";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import s from "@/styles/ExchangePage.module.scss";
 import api from "@/services/api";
 import StatusChecker from "@/components/StatusChecker";
+import { useAuth } from "@/contexts/AuthContext";
+import Link from "next/link";
 
 export default function ExchangePage() {
   const [from, setFrom] = useState(null);
@@ -21,11 +23,20 @@ export default function ExchangePage() {
   const [availableTo, setAvailableTo] = useState([]);
   const [directions, setDirections] = useState([]);
 
+  const { isAuthenticated, user } = useAuth();
+
   // Загрузка валют при монтировании
   useEffect(() => {
     loadCurrencies();
     loadDirections();
   }, []);
+
+  // Предзаполнение email из профиля пользователя
+  useEffect(() => {
+    if (isAuthenticated && user?.email && !email) {
+      setEmail(user.email);
+    }
+  }, [isAuthenticated, user, email]);
 
   // Загрузка доступных валют для получения при изменении from
   useEffect(() => {
@@ -182,11 +193,20 @@ export default function ExchangePage() {
       });
 
       if (result.success) {
-        toast.success(result.message || "Заявка успешно создана!");
+        const successMessage = result.message || "Заявка успешно создана!";
+        if (isAuthenticated) {
+          toast.success(successMessage + " Обмен сохранен в вашей истории.");
+        } else {
+          toast.success(successMessage);
+        }
+
         // Очистка формы
         setAmount("");
         setWallet("");
-        setEmail("");
+        // Не очищаем email если пользователь авторизован
+        if (!isAuthenticated) {
+          setEmail("");
+        }
         setFrom(null);
         setTo(null);
 
@@ -207,7 +227,32 @@ export default function ExchangePage() {
   return (
     <>
       <form className={s.wrap} onSubmit={handleSubmit}>
-        <h1 className={s.pageTitle}>Обмен валют</h1>
+        <div className={s.header}>
+          <h1 className={s.pageTitle}>Обмен валют</h1>
+
+          {/* User Status */}
+          {isAuthenticated ? (
+            <div className={s.userInfo}>
+              <div className={s.userHeader}>
+                <FiUser className={s.userIcon} />
+                <span className={s.username}>
+                  Вы авторизованы как {user?.username}
+                </span>
+              </div>
+
+              <div className={s.authBenefit}>
+                <FiInfo className={s.infoIcon} />
+                <span>Обмены сохраняются в истории</span>
+              </div>
+            </div>
+          ) : (
+            <div className={s.authPrompt}>
+              <Link href="/login" className={s.loginPrompt}>
+                Войдите в аккаунт для сохранения истории обменов
+              </Link>
+            </div>
+          )}
+        </div>
 
         <CurrencySelect
           label="Отдаю"
@@ -275,8 +320,14 @@ export default function ExchangePage() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            disabled={isAuthenticated && user?.email}
           />
           {errors.email && <span className={s.msg}>{errors.email}</span>}
+          {isAuthenticated && user?.email && (
+            <span className={s.helperText}>
+              Используется email из вашего профиля
+            </span>
+          )}
         </div>
 
         <button className={s.submit} disabled={loading}>
@@ -284,7 +335,7 @@ export default function ExchangePage() {
         </button>
       </form>
 
-      <StatusChecker />
+      {/* <StatusChecker /> */}
 
       <ToastContainer
         position="top-right"

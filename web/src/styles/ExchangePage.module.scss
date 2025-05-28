@@ -10,11 +10,82 @@ $gray: #2a2a2a;
   color: #fff;
 }
 
+.header {
+  margin-bottom: 28px;
+}
+
 .pageTitle {
   font-size: 32px;
   font-weight: 700;
   color: $orange;
-  margin-bottom: 28px;
+  margin-bottom: 16px;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba($orange, 0.1);
+  border: 1px solid rgba($orange, 0.3);
+  border-radius: 16px;
+  padding: 16px;
+
+  .username {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    color: $orange;
+  }
+
+  .userHeader {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .userIcon {
+    color: $orange;
+  }
+
+  .authBenefit {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: #cfcfcf;
+
+    .infoIcon {
+      color: #7d7d7d;
+    }
+  }
+}
+
+.authPrompt {
+  background: rgba($gray, 0.5);
+  border: 1px solid $gray;
+  border-radius: 16px;
+  padding: 16px;
+  text-align: center;
+
+  .loginPrompt {
+    color: $orange;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 500;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.helperText {
+  font-size: 12px;
+  color: #7d7d7d;
+  margin-top: 4px;
+  display: block;
 }
 
 .shared {
@@ -49,6 +120,12 @@ $gray: #2a2a2a;
 
     &:focus {
       border-color: $orange;
+    }
+
+    &:disabled {
+      background: rgba($gray, 0.3);
+      cursor: not-allowed;
+      color: #999;
     }
   }
 }

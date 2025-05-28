@@ -1,9 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import s from "@/styles/Auth.module.scss";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -11,7 +14,16 @@ export default function LoginPage() {
     password: "",
   });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { login, isAuthenticated } = useAuth();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push("/");
+    }
+  }, [isAuthenticated, router]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -19,22 +31,36 @@ export default function LoginPage() {
       ...prev,
       [name]: value,
     }));
+    // Clear error when user starts typing
+    if (error) setError("");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
-    if (formData.username && formData.password) {
-      router.push("/");
-    } else {
+    if (!formData.username || !formData.password) {
       setError("Пожалуйста, заполните все поля");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      await login(formData);
+      toast.success("Вход выполнен успешно!");
+      router.push("/exchange");
+    } catch (error) {
+      console.error("Login error:", error);
+      setError(error.message || "Ошибка входа. Проверьте данные.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className={s.wrapper}>
-       <div className={s.logoBlock}>
+      <div className={s.logoBlock}>
         <img
           src="./assets/images/logo.png"
           alt="WireBit Logo"
@@ -57,6 +83,7 @@ export default function LoginPage() {
               value={formData.username}
               onChange={handleChange}
               placeholder="Введите имя пользователя"
+              disabled={loading}
             />
           </div>
 
@@ -68,13 +95,14 @@ export default function LoginPage() {
               value={formData.password}
               onChange={handleChange}
               placeholder="Введите пароль"
+              disabled={loading}
             />
           </div>
 
           {error && <div className={s.error}>{error}</div>}
 
-          <button type="submit" className={s.loginBtn}>
-            Войти
+          <button type="submit" className={s.loginBtn} disabled={loading}>
+            {loading ? "Вход..." : "Войти"}
           </button>
         </form>
 
@@ -82,6 +110,19 @@ export default function LoginPage() {
           Нет аккаунта? <Link href="/register">Зарегистрироваться</Link>
         </p>
       </div>
+
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </div>
   );
 }
