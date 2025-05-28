@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from typing import List, Optional
 import logging
 
@@ -11,6 +11,10 @@ from schemas.exchange import (
     ErrorResponse
 )
 from services.wirebit_client import wirebit_client
+from auth.dependencies import get_db, get_current_user_optional
+from models.models import User, ExchangeHistory
+from sqlalchemy.orm import Session
+import json
 
 
 logger = logging.getLogger(__name__)
@@ -80,7 +84,11 @@ async def get_available_to(from_currency: str = Query(..., alias="from")):
 
 
 @router.post("/create-exchange", response_model=CreateExchangeResponse)
-async def create_exchange(request: CreateExchangeRequest):
+async def create_exchange(
+    request: CreateExchangeRequest,
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional)
+):
     """Create exchange bid"""
     try:
         result = wirebit_client.create_bid(
@@ -89,6 +97,43 @@ async def create_exchange(request: CreateExchangeRequest):
             account_to=request.account_to,
             cf6=request.cf6
         )
+        
+        # If user is authenticated and exchange was successful, save to history
+        if current_user and result.get("success") and result.get("data"):
+            try:
+                exchange_data = result["data"]
+                
+                # Get direction details for currencies
+                directions = wirebit_client.get_directions()
+                direction = next((d for d in directions if d["direction_id"] == request.direction_id), None)
+                
+                if direction:
+                    # Create history record
+                    history_record = ExchangeHistory(
+                        user_id=current_user.id,
+                        direction_id=request.direction_id,
+                        from_currency=direction["from"],
+                        to_currency=direction["to"],
+                        amount_give=float(exchange_data.get("amount_give", request.amount)),
+                        amount_get=float(exchange_data.get("amount_get", 0)),
+                        exchange_rate=float(exchange_data.get("course_get", direction["rate"])),
+                        bid_id=str(exchange_data.get("id")),
+                        status=exchange_data.get("status", "new"),
+                        payment_address=exchange_data.get("api_actions", {}).get("address"),
+                        wirebit_url=exchange_data.get("url"),
+                        wallet_address=request.account_to,
+                        email_used=request.cf6,
+                        additional_data=json.dumps(exchange_data)
+                    )
+                    
+                    db.add(history_record)
+                    db.commit()
+                    logger.info(f"Exchange saved to history for user {current_user.username}")
+                    
+            except Exception as history_error:
+                logger.error(f"Failed to save exchange to history: {str(history_error)}")
+                # Don't fail the main exchange if history saving fails
+                pass
         
         return CreateExchangeResponse(**result)
         

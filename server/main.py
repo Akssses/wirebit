@@ -10,7 +10,13 @@ import logging
 
 from core.config import settings
 from routes.exchange import router as exchange_router
+from routes.auth import router as auth_router
+from routes.history import router as history_router
+from database import engine
+from models import models
 
+# Create database tables
+models.Base.metadata.create_all(bind=engine)
 
 # Configure logging
 logging.basicConfig(
@@ -41,6 +47,8 @@ app.add_middleware(
 
 # Include routers
 app.include_router(exchange_router)
+app.include_router(auth_router)
+app.include_router(history_router)
 
 
 @app.exception_handler(Exception)
