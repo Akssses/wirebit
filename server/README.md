@@ -1,6 +1,86 @@
-# Wirebit Exchange Backend API
+# Wirebit Exchange Backend
 
-Production-ready FastAPI backend for cryptocurrency exchange integration with Wirebit API.
+Backend сервис для интеграции с API криптообменника Wirebit.
+
+## Установка
+
+1. Создайте виртуальное окружение:
+
+```bash
+python3 -m venv venv
+source venv/bin/activate  # На macOS/Linux
+```
+
+2. Установите зависимости:
+
+```bash
+pip install -r requirements.txt
+```
+
+3. Создайте файл `.env` с вашими API ключами:
+
+```env
+WIREBIT_API_KEY=your_api_key_here
+WIREBIT_API_LOGIN=your_api_login_here
+```
+
+4. Запустите сервер:
+
+```bash
+uvicorn main:app --reload
+```
+
+## API Endpoints
+
+- `GET /api/directions` - Получить доступные направления обмена
+- `GET /api/currencies` - Получить список валют
+- `POST /api/available-to` - Получить доступные валюты для направления
+- `POST /api/create-exchange` - Создать заявку на обмен
+- `POST /api/status` - Проверить статус заявки
+
+## Известные проблемы
+
+### Ошибка "Amount exceeds limits"
+
+Если вы получаете ошибку о превышении лимитов при любой сумме, это может означать:
+
+1. **API ключи в тестовом режиме** - свяжитесь с Wirebit для получения production доступа
+2. **Недостаточный баланс** - проверьте баланс вашего аккаунта Wirebit
+3. **Требуется верификация** - убедитесь, что ваш аккаунт прошел необходимую верификацию
+
+### Решение проблем
+
+1. Проверьте статус вашего аккаунта в личном кабинете Wirebit
+2. Убедитесь, что API ключи имеют права на создание обменов
+3. Проверьте минимальные суммы обмена для выбранного направления
+4. При необходимости обратитесь в поддержку Wirebit
+
+## Тестирование
+
+Для проверки интеграции используйте тестовые скрипты:
+
+```bash
+# Проверить доступные направления
+python3 test_create_bid.py
+
+# Проверить статус всех направлений
+python3 test_check_directions_status.py
+```
+
+## Структура проекта
+
+```
+server/
+├── api/
+│   └── wirebit_api.py      # Клиент для Wirebit API
+├── routers/
+│   └── wirebit.py          # FastAPI роутеры
+├── models/
+│   └── wirebit.py          # Pydantic модели
+├── config.py               # Конфигурация
+├── main.py                 # Точка входа FastAPI
+└── requirements.txt        # Зависимости
+```
 
 ## Features
 
@@ -31,48 +111,6 @@ server/
 ├── main.py                # FastAPI application
 ├── requirements.txt       # Python dependencies
 └── .env                   # Environment variables
-```
-
-## API Endpoints
-
-All endpoints are prefixed with `/api`:
-
-- `GET /api/directions` - Get all exchange directions
-- `GET /api/currencies` - Get unique currencies for sending
-- `GET /api/available-to?from={currency}` - Get available currencies to receive
-- `POST /api/create-exchange` - Create exchange bid
-- `GET /api/status?bid_id={id}` - Get bid status
-
-## Setup
-
-1. Create virtual environment:
-
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-2. Install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-3. Configure environment variables:
-
-   - Copy `.env.example` to `.env`
-   - Update API credentials if needed
-
-4. Run the server:
-
-```bash
-python main.py
-```
-
-Or with uvicorn directly:
-
-```bash
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 ## API Documentation
