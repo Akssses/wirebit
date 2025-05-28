@@ -1,58 +1,80 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import s from "@/styles/RatesPage.module.scss";
 
-const MOCK_RATES = [
-  {
-    from_currency: "BTC",
-    to_currency: "USDT",
-    rate_in: 1,
-    rate_out: 43000,
-    available_amount: 10,
-    min_amount: "0.001 BTC",
-    max_amount: "10 BTC",
-    is_manual: false
-  },
-  {
-    from_currency: "ETH",
-    to_currency: "USDT",
-    rate_in: 1,
-    rate_out: 2200,
-    available_amount: 100,
-    min_amount: "0.01 ETH",
-    max_amount: "100 ETH",
-    is_manual: false
-  },
-  {
-    from_currency: "USDT",
-    to_currency: "BTC",
-    rate_in: 43000,
-    rate_out: 1,
-    available_amount: 500000,
-    min_amount: "100 USDT",
-    max_amount: "500000 USDT",
-    is_manual: true
-  },
-  {
-    from_currency: "USDT",
-    to_currency: "ETH",
-    rate_in: 2200,
-    rate_out: 1,
-    available_amount: 500000,
-    min_amount: "100 USDT",
-    max_amount: "500000 USDT",
-    is_manual: false
+async function fetchRates() {
+  try {
+    const response = await fetch('/api/rates');
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to fetch rates');
+    }
+    const text = await response.text();
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(text, "text/xml");
+    const items = xmlDoc.getElementsByTagName('item');
+    
+    return Array.from(items).map(item => ({
+      from_currency: item.getElementsByTagName('from')[0].textContent,
+      to_currency: item.getElementsByTagName('to')[0].textContent,
+      rate_in: parseFloat(item.getElementsByTagName('in')[0].textContent),
+      rate_out: parseFloat(item.getElementsByTagName('out')[0].textContent),
+      available_amount: parseFloat(item.getElementsByTagName('amount')[0].textContent),
+      min_amount: item.getElementsByTagName('minamount')[0].textContent,
+      max_amount: item.getElementsByTagName('maxamount')[0].textContent,
+      is_manual: item.getElementsByTagName('param')[0]?.textContent === 'manual'
+    }));
+  } catch (error) {
+    console.error('Error fetching rates:', error);
+    throw error;
   }
-];
+}
 
 export default function RatesPage() {
+  const [rates, setRates] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchRates()
+      .then(data => {
+        setRates(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        setError(err.message);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+      <main className={s.wrapper}>
+        <h1 className={s.pageTitle}>Курсы обмена</h1>
+        <div className={s.loading}>
+          <div className={s.spinner}></div>
+          Загрузка курсов...
+        </div>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className={s.wrapper}>
+        <h1 className={s.pageTitle}>Курсы обмена</h1>
+        <div className={s.error}>Ошибка загрузки курсов: {error}</div>
+      </main>
+    );
+  }
+
   return (
     <main className={s.wrapper}>
       <h1 className={s.pageTitle}>Курсы обмена</h1>
 
       <div className={s.grid}>
-        {MOCK_RATES.map((rate, index) => (
+        {rates.map((rate, index) => (
           <article key={index} className={s.card}>
             <h2 className={s.pair}>
               {rate.from_currency}{" "}
