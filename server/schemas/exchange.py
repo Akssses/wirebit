@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List, Dict, Any, Union
 
 
@@ -38,6 +38,14 @@ class CreateExchangeResponse(BaseModel):
     bid_id: Optional[str] = None
     data: Optional[Dict[str, Any]] = None
     verification_required: Optional[bool] = False
+    
+    @field_validator('bid_id', mode='before')
+    @classmethod
+    def convert_bid_id_to_string(cls, v):
+        """Convert bid_id to string if it's an integer"""
+        if v is not None:
+            return str(v)
+        return v
 
 
 class StatusResponse(BaseModel):
