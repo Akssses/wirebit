@@ -11,17 +11,17 @@ class VerificationRequestResponse(BaseModel):
     filename: str
     file_size: int
     status: str
-    admin_notes: Optional[str] = None
-    submitted_at: datetime
-    reviewed_at: Optional[datetime] = None
-    reviewed_by: Optional[str] = None
+    admin_comment: Optional[str] = None
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    processed_by: Optional[int] = None
     
     class Config:
         from_attributes = True
 
 class VerificationRequestUpdate(BaseModel):
     status: str  # approved, rejected
-    admin_notes: Optional[str] = None
+    admin_comment: Optional[str] = None
 
 class UserVerificationStatus(BaseModel):
     is_verified: bool

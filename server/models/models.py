@@ -19,7 +19,7 @@ class User(Base):
     
     # Relationships
     exchanges = relationship("ExchangeHistory", back_populates="user")
-    verification_requests = relationship("VerificationRequest", back_populates="user")
+    verification_requests = relationship("VerificationRequest", back_populates="user", foreign_keys="VerificationRequest.user_id")
 
 
 class ExchangeHistory(Base):
@@ -66,10 +66,10 @@ class VerificationRequest(Base):
     file_path = Column(String, nullable=False)
     file_size = Column(Integer, nullable=False)
     status = Column(String, default="pending")  # pending, approved, rejected
-    admin_notes = Column(Text, nullable=True)
-    submitted_at = Column(DateTime, default=datetime.utcnow)
-    reviewed_at = Column(DateTime, nullable=True)
-    reviewed_by = Column(String, nullable=True)  # Admin username who reviewed
+    admin_comment = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, nullable=True)
+    processed_by = Column(Integer, ForeignKey("users.id"), nullable=True)  # Admin user ID who reviewed
     
     # Relationships
-    user = relationship("User", back_populates="verification_requests") 
+    user = relationship("User", back_populates="verification_requests", foreign_keys=[user_id]) 

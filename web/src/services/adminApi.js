@@ -1,82 +1,111 @@
 import authApi from "./authApi";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+const API_BASE_URL = "http://localhost:8000";
 
-class AdminApiService {
-  async request(endpoint, options = {}) {
-    try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        headers: {
-          ...authApi.getAuthHeaders(),
-          ...options.headers,
-        },
-        ...options,
-      });
+class AdminApi {
+  getHeaders() {
+    const token = localStorage.getItem("authToken");
+    return {
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    };
+  }
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          authApi.removeToken();
-          window.location.href = "/login";
-          return;
-        }
-        if (response.status === 403) {
-          throw new Error("Доступ запрещен. Требуются права администратора.");
-        }
-        throw new Error(data.detail || "Ошибка сервера");
+  async getVerificationRequests() {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/verification-requests`,
+      {
+        headers: this.getHeaders(),
       }
+    );
 
-      return data;
-    } catch (error) {
-      console.error("Admin API Error:", error);
-      throw error;
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Failed to fetch verification requests");
     }
+
+    return response.json();
   }
 
-  // Get all verification requests
-  async getVerificationRequests(statusFilter = null) {
-    let url = "/admin/verification-requests";
-    if (statusFilter) {
-      url += `?status_filter=${encodeURIComponent(statusFilter)}`;
+  async getAllVerificationRequests() {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/verification-requests/all`,
+      {
+        headers: this.getHeaders(),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(
+        error.detail || "Failed to fetch all verification requests"
+      );
     }
-    return this.request(url);
+
+    return response.json();
   }
 
-  // Get specific verification request
-  async getVerificationRequest(requestId) {
-    return this.request(`/admin/verification-requests/${requestId}`);
+  async approveVerification(requestId, comment = "") {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/verification-requests/${requestId}/approve`,
+      {
+        method: "POST",
+        headers: this.getHeaders(),
+        body: JSON.stringify({ comment }),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Failed to approve verification");
+    }
+
+    return response.json();
   }
 
-  // Update verification request status
-  async updateVerificationRequest(requestId, updateData) {
-    return this.request(`/admin/verification-requests/${requestId}`, {
-      method: "PUT",
-      body: JSON.stringify(updateData),
-    });
+  async rejectVerification(requestId, comment = "") {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/verification-requests/${requestId}/reject`,
+      {
+        method: "POST",
+        headers: this.getHeaders(),
+        body: JSON.stringify({ comment }),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Failed to reject verification");
+    }
+
+    return response.json();
   }
 
-  // Get list of all users
   async getUsers() {
-    return this.request("/admin/users");
+    const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
+      headers: this.getHeaders(),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Failed to fetch users");
+    }
+
+    return response.json();
   }
 
-  // Approve verification request
-  async approveVerification(requestId, adminNotes = "") {
-    return this.updateVerificationRequest(requestId, {
-      status: "approved",
-      admin_notes: adminNotes,
+  async getStats() {
+    const response = await fetch(`${API_BASE_URL}/api/admin/stats`, {
+      headers: this.getHeaders(),
     });
-  }
 
-  // Reject verification request
-  async rejectVerification(requestId, adminNotes = "") {
-    return this.updateVerificationRequest(requestId, {
-      status: "rejected",
-      admin_notes: adminNotes,
-    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Failed to fetch stats");
+    }
+
+    return response.json();
   }
 }
 
-export default new AdminApiService();
+export default new AdminApi();

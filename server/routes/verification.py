@@ -70,7 +70,7 @@ async def get_verification_status(
     # Get latest verification request
     latest_request = db.query(VerificationRequest).filter(
         VerificationRequest.user_id == current_user.id
-    ).order_by(VerificationRequest.submitted_at.desc()).first()
+    ).order_by(VerificationRequest.created_at.desc()).first()
     
     return UserVerificationStatus(
         is_verified=current_user.is_verified,

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from auth.dependencies import get_db
+from auth.dependencies import get_db, get_current_user
 from auth.auth_utils import get_password_hash, verify_password, create_access_token
 from models.models import User
 from schemas.auth import UserCreate, UserLogin, UserResponse, Token
@@ -90,4 +90,10 @@ async def login(user_data: UserLogin, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Login failed"
-        ) 
+        )
+
+
+@router.get("/me", response_model=UserResponse)
+async def get_current_user_data(current_user: User = Depends(get_current_user)):
+    """Get current user data"""
+    return current_user 

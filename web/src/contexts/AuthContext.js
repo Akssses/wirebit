@@ -28,21 +28,13 @@ export function AuthProvider({ children }) {
         return;
       }
 
-      // For now, just check if token exists
-      // In a real app, you'd validate it with the server
-      const userData = {
-        token,
-        // We could decode JWT to get user info, but for simplicity using localStorage
-        username: localStorage.getItem("username") || "User",
-        email: localStorage.getItem("email") || "",
-      };
-
+      // Get user data from server
+      const userData = await authApi.getCurrentUser(token);
       setUser(userData);
     } catch (error) {
       console.error("Auth check failed:", error);
       authApi.removeToken();
-      localStorage.removeItem("username");
-      localStorage.removeItem("email");
+      setUser(null);
     }
     setLoading(false);
   };
@@ -54,18 +46,10 @@ export function AuthProvider({ children }) {
 
       authApi.saveToken(access_token);
 
-      // Save user info to localStorage for simplicity
-      localStorage.setItem("username", credentials.username);
-      // Email would come from registration, but for demo purposes
-      localStorage.setItem("email", credentials.email || "");
-
-      const userData = {
-        token: access_token,
-        username: credentials.username,
-        email: credentials.email || "",
-      };
-
+      // Get full user data from server
+      const userData = await authApi.getCurrentUser(access_token);
       setUser(userData);
+
       return response;
     } catch (error) {
       throw error;
@@ -80,7 +64,6 @@ export function AuthProvider({ children }) {
       await login({
         username: userData.username,
         password: userData.password,
-        email: userData.email,
       });
 
       return response;
@@ -91,8 +74,6 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     authApi.removeToken();
-    localStorage.removeItem("username");
-    localStorage.removeItem("email");
     setUser(null);
   };
 
