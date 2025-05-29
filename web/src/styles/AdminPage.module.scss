@@ -87,6 +87,61 @@ $lightGray: #3a3a3a;
   margin-top: 4px;
 }
 
+// Quick Actions
+.quickActions {
+  margin-bottom: 40px;
+}
+
+.sectionTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 20px 0;
+}
+
+.actionsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.actionCard {
+  background: $gray;
+  border: 1px solid #3a3a3a;
+  border-radius: 16px;
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: $orange;
+    background: rgba($orange, 0.05);
+  }
+}
+
+.actionIcon {
+  font-size: 32px;
+  color: $orange;
+}
+
+.actionLabel {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.actionDescription {
+  font-size: 14px;
+  color: #bbb;
+  margin: 0;
+}
+
 // Tabs
 .tabs {
   display: flex;

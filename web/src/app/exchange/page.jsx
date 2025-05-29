@@ -18,6 +18,12 @@ function ExchangePageContent() {
   const [amount, setAmount] = useState("");
   const [wallet, setWallet] = useState("");
   const [email, setEmail] = useState("");
+
+  // Поля для рублевых обменов
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardHolderName, setCardHolderName] = useState("");
+  const [telegram, setTelegram] = useState("");
+
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [currencies, setCurrencies] = useState([]);
@@ -192,17 +198,36 @@ function ExchangePageContent() {
       e.amount = "Введите сумму";
     }
 
-    // Validate wallet address with currency-specific rules
-    if (to) {
-      const walletError = validateWalletAddress(wallet, to.title);
-      if (walletError) e.wallet = walletError;
-    } else if (!wallet.trim()) {
-      e.wallet = "Укажите ID кошелька";
-    }
+    // Валидация в зависимости от типа направления
+    if (isRubDirection()) {
+      // Валидация для рублевых направлений
+      if (!cardNumber.trim()) e.cardNumber = "Укажите номер карты";
+      else if (!/^\d{16,19}$/.test(cardNumber.replace(/\s/g, ""))) {
+        e.cardNumber = "Номер карты должен содержать 16-19 цифр";
+      }
 
-    if (!email.trim()) e.email = "Укажите Email";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      e.email = "Некорректный Email";
+      if (!cardHolderName.trim())
+        e.cardHolderName = "Укажите имя владельца карты";
+
+      if (!email.trim()) e.email = "Укажите Email";
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        e.email = "Некорректный Email";
+      }
+
+      if (!telegram.trim()) e.telegram = "Укажите Telegram или WhatsApp";
+    } else {
+      // Валидация для крипто направлений
+      if (to) {
+        const walletError = validateWalletAddress(wallet, to.title);
+        if (walletError) e.wallet = walletError;
+      } else if (!wallet.trim()) {
+        e.wallet = "Укажите ID кошелька";
+      }
+
+      if (!email.trim()) e.email = "Укажите Email";
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        e.email = "Некорректный Email";
+      }
     }
 
     setErrors(e);
@@ -281,12 +306,30 @@ function ExchangePageContent() {
 
     setLoading(true);
     try {
-      const result = await api.createExchange({
+      let exchangeData = {
         direction_id: direction.direction_id,
         amount: parseFloat(amount),
-        account_to: wallet,
-        cf6: email,
-      });
+      };
+
+      if (isRubDirection()) {
+        // Для рублевых обменов
+        exchangeData = {
+          ...exchangeData,
+          account2: cardNumber.replace(/\s/g, ""), // номер карты без пробелов
+          cfgive8: cardHolderName, // имя владельца карты
+          cf6: email, // email
+          cf11: telegram, // telegram/whatsapp
+        };
+      } else {
+        // Для крипто обменов
+        exchangeData = {
+          ...exchangeData,
+          account_to: wallet,
+          cf6: email,
+        };
+      }
+
+      const result = await api.createExchange(exchangeData);
 
       if (result.success) {
         const successMessage = result.message || "Заявка успешно создана!";
@@ -295,6 +338,9 @@ function ExchangePageContent() {
         // Очистка формы
         setAmount("");
         setWallet("");
+        setCardNumber("");
+        setCardHolderName("");
+        setTelegram("");
         setFrom(null);
         setTo(null);
 
@@ -313,6 +359,37 @@ function ExchangePageContent() {
   };
 
   const verificationBlock = getVerificationBlockType();
+
+  // Функция для определения рублевого направления
+  const isRubDirection = () => {
+    if (!to) return false;
+    return (
+      to.title.includes("RUB") ||
+      to.title.includes("рубл") ||
+      to.title.includes("Банковская карта") ||
+      to.title.includes("СБП") ||
+      to.title.includes("Сбербанк") ||
+      to.title.includes("Т-Банк") ||
+      to.title.includes("Альфа-Банк")
+    );
+  };
+
+  // Функция для форматирования номера карты
+  const formatCardNumber = (value) => {
+    // Убираем все, кроме цифр
+    const cleaned = value.replace(/\D/g, "");
+    // Добавляем пробелы каждые 4 цифры
+    const formatted = cleaned.replace(/(\d{4})(?=\d)/g, "$1 ");
+    return formatted;
+  };
+
+  const handleCardNumberChange = (e) => {
+    const formatted = formatCardNumber(e.target.value);
+    if (formatted.length <= 23) {
+      // 19 цифр + 4 пробела максимум
+      setCardNumber(formatted);
+    }
+  };
 
   return (
     <>
@@ -400,36 +477,106 @@ function ExchangePageContent() {
           </div>
         )}
 
-        <div className={cx(s.field, errors.wallet && s.error)}>
-          <label>
-            ID кошелька получателя<span>*</span>
-          </label>
-          <input
-            placeholder="Укажите ID"
-            value={wallet}
-            onChange={(e) => setWallet(e.target.value)}
-          />
-          {errors.wallet && <span className={s.msg}>{errors.wallet}</span>}
-        </div>
+        {/* Поля для рублевых обменов */}
+        {isRubDirection() ? (
+          <>
+            <div className={cx(s.field, errors.cardNumber && s.error)}>
+              <label>
+                На карту<span>*</span>
+              </label>
+              <input
+                placeholder="0000 0000 0000 0000"
+                value={cardNumber}
+                onChange={handleCardNumberChange}
+                maxLength={19}
+              />
+              {errors.cardNumber && (
+                <span className={s.msg}>{errors.cardNumber}</span>
+              )}
+            </div>
 
-        <div className={cx(s.field, errors.email && s.error)}>
-          <label>
-            Персональная информация<span>*</span>
-          </label>
-          <input
-            placeholder="Укажите Email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            disabled={!!user?.email}
-          />
-          {errors.email && <span className={s.msg}>{errors.email}</span>}
-          {user?.email && (
-            <span className={s.helperText}>
-              Используется email из вашего профиля
-            </span>
-          )}
-        </div>
+            <div className={cx(s.field, errors.cardHolderName && s.error)}>
+              <label>
+                ФИО владельца карты<span>*</span>
+              </label>
+              <input
+                placeholder="Иванов Иван Иванович"
+                value={cardHolderName}
+                onChange={(e) => setCardHolderName(e.target.value)}
+              />
+              {errors.cardHolderName && (
+                <span className={s.msg}>{errors.cardHolderName}</span>
+              )}
+            </div>
+
+            <div className={cx(s.field, errors.telegram && s.error)}>
+              <label>
+                WhatsApp/Telegram<span>*</span>
+              </label>
+              <input
+                placeholder="@username или +7 900 123 45 67"
+                value={telegram}
+                onChange={(e) => setTelegram(e.target.value)}
+              />
+              {errors.telegram && (
+                <span className={s.msg}>{errors.telegram}</span>
+              )}
+            </div>
+
+            <div className={cx(s.field, errors.email && s.error)}>
+              <label>
+                Email<span>*</span>
+              </label>
+              <input
+                placeholder="example@mail.ru"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={!!user?.email}
+              />
+              {errors.email && <span className={s.msg}>{errors.email}</span>}
+              {user?.email && (
+                <span className={s.helperText}>
+                  Используется email из вашего профиля
+                </span>
+              )}
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Поля для крипто обменов */}
+            <div className={cx(s.field, errors.wallet && s.error)}>
+              <label>
+                ID кошелька получателя<span>*</span>
+              </label>
+              <input
+                placeholder="Укажите ID"
+                value={wallet}
+                onChange={(e) => setWallet(e.target.value)}
+              />
+              {errors.wallet && <span className={s.msg}>{errors.wallet}</span>}
+            </div>
+
+            <div className={cx(s.field, errors.email && s.error)}>
+              <label>
+                Персональная информация<span>*</span>
+              </label>
+              <input
+                placeholder="Укажите Email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={!!user?.email}
+              />
+              {errors.email && <span className={s.msg}>{errors.email}</span>}
+              {user?.email && (
+                <span className={s.helperText}>
+                  Используется email из вашего профиля
+                </span>
+              )}
+            </div>
+          </>
+        )}
 
         <button
           className={s.submit}

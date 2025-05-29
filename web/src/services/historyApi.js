@@ -1,67 +1,68 @@
 import authApi from "./authApi";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+const API_BASE_URL = "http://localhost:8000";
 
-class HistoryApiService {
-  async request(endpoint, options = {}) {
-    try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        headers: {
-          ...authApi.getAuthHeaders(),
-          ...options.headers,
-        },
-        ...options,
-      });
+class HistoryApi {
+  getHeaders() {
+    const token = localStorage.getItem("authToken");
+    return {
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    };
+  }
 
-      const data = await response.json();
+  async getHistory({ skip = 0, limit = 50, status_filter = "" } = {}) {
+    return this.getUserHistory({ skip, limit, status_filter });
+  }
 
-      if (!response.ok) {
-        if (response.status === 401) {
-          // Token expired or invalid
-          authApi.removeToken();
-          window.location.href = "/login";
-          return;
-        }
-        throw new Error(data.detail || "Ошибка сервера");
+  async getUserHistory({ skip = 0, limit = 50, status_filter = "" } = {}) {
+    const params = new URLSearchParams();
+    if (skip) params.append("skip", skip);
+    if (limit) params.append("limit", limit);
+    if (status_filter) params.append("status_filter", status_filter);
+
+    const response = await fetch(
+      `${API_BASE_URL}/api/history?${params.toString()}`,
+      {
+        headers: this.getHeaders(),
       }
+    );
 
-      return data;
-    } catch (error) {
-      console.error("History API Error:", error);
-      throw error;
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Failed to fetch exchange history");
     }
+
+    return response.json();
   }
 
-  // Получить историю обменов пользователя
-  async getHistory(page = 0, limit = 50, statusFilter = null) {
-    let url = `/history/?skip=${page * limit}&limit=${limit}`;
-    if (statusFilter) {
-      url += `&status_filter=${encodeURIComponent(statusFilter)}`;
-    }
-    return this.request(url);
-  }
-
-  // Получить детали конкретного обмена
   async getExchangeDetails(exchangeId) {
-    return this.request(`/history/${exchangeId}`);
+    const response = await fetch(`${API_BASE_URL}/api/history/${exchangeId}`, {
+      headers: this.getHeaders(),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Failed to fetch exchange details");
+    }
+
+    return response.json();
   }
 
-  // Создать запись в истории (обычно вызывается автоматически при создании обмена)
   async createExchangeRecord(exchangeData) {
-    return this.request("/history/", {
+    const response = await fetch(`${API_BASE_URL}/api/history`, {
       method: "POST",
+      headers: this.getHeaders(),
       body: JSON.stringify(exchangeData),
     });
-  }
 
-  // Обновить статус обмена
-  async updateExchangeStatus(exchangeId, updateData) {
-    return this.request(`/history/${exchangeId}`, {
-      method: "PUT",
-      body: JSON.stringify(updateData),
-    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Failed to create exchange record");
+    }
+
+    return response.json();
   }
 }
 
-export default new HistoryApiService();
+export default new HistoryApi();

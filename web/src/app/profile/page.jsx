@@ -14,22 +14,155 @@ import {
   FiCheckCircle,
   FiAlertCircle,
   FiClock,
+  FiSettings,
+  FiTrendingUp,
 } from "react-icons/fi";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 const statusMap = {
   new: { label: "Новая", color: "#ffb300" },
   pending: { label: "Ожидается", color: "#ffb300" },
+  processing: { label: "Обрабатывается", color: "#4ade80" },
   completed: { label: "Завершена", color: "#29b352" },
   cancelled: { label: "Отменена", color: "#e53935" },
+  rejected: { label: "Отклонена", color: "#e53935" },
   failed: { label: "Неудачная", color: "#e53935" },
 };
+
+// Exchange Details Modal Component
+function ExchangeDetailsModal({ exchange, onClose }) {
+  if (!exchange) return null;
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleString("ru-RU", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const getStatusText = (status) => {
+    return statusMap[status]?.label || status;
+  };
+
+  const getStatusColor = (status) => {
+    return statusMap[status]?.color || "#ffb300";
+  };
+
+  return (
+    <div className={s.modalOverlay} onClick={onClose}>
+      <div className={s.detailsModal} onClick={(e) => e.stopPropagation()}>
+        <div className={s.modalHeader}>
+          <h3>Детали обмена #{exchange.id}</h3>
+          <button className={s.closeBtn} onClick={onClose}>
+            ×
+          </button>
+        </div>
+
+        <div className={s.modalBody}>
+          <div className={s.detailsGrid}>
+            <div className={s.detailSection}>
+              <h4>Информация об обмене</h4>
+              {exchange.bid_id && (
+                <div className={s.detailItem}>
+                  <label>ID заявки</label>
+                  <span>{exchange.bid_id}</span>
+                </div>
+              )}
+              <div className={s.detailItem}>
+                <label>Направление</label>
+                <span>
+                  {exchange.from_currency} → {exchange.to_currency}
+                </span>
+              </div>
+              <div className={s.detailItem}>
+                <label>Сумма отправки</label>
+                <span>
+                  {exchange.amount_give} {exchange.from_currency}
+                </span>
+              </div>
+              <div className={s.detailItem}>
+                <label>Сумма получения</label>
+                <span>
+                  {exchange.amount_get.toFixed(6)} {exchange.to_currency}
+                </span>
+              </div>
+              <div className={s.detailItem}>
+                <label>Курс обмена</label>
+                <span>{exchange.exchange_rate}</span>
+              </div>
+              <div className={s.detailItem}>
+                <label>Статус</label>
+                <span
+                  className={s.statusBadge}
+                  style={{ backgroundColor: getStatusColor(exchange.status) }}
+                >
+                  {getStatusText(exchange.status)}
+                </span>
+              </div>
+            </div>
+
+            <div className={s.detailSection}>
+              <h4>Детали транзакции</h4>
+              <div className={s.detailItem}>
+                <label>Email для обмена</label>
+                <span>{exchange.email_used}</span>
+              </div>
+              <div className={s.detailItem}>
+                <label>Адрес получения</label>
+                <span className={s.address}>{exchange.wallet_address}</span>
+              </div>
+              {exchange.payment_address && (
+                <div className={s.detailItem}>
+                  <label>Адрес для оплаты</label>
+                  <span className={s.address}>{exchange.payment_address}</span>
+                </div>
+              )}
+            </div>
+
+            <div className={s.detailSection}>
+              <h4>Временные метки</h4>
+              <div className={s.detailItem}>
+                <label>Создан</label>
+                <span>{formatDate(exchange.created_at)}</span>
+              </div>
+              <div className={s.detailItem}>
+                <label>Обновлен</label>
+                <span>{formatDate(exchange.updated_at)}</span>
+              </div>
+            </div>
+
+            {exchange.wirebit_url && (
+              <div className={s.detailSection}>
+                <h4>Дополнительно</h4>
+                <div className={s.detailItem}>
+                  <label>Ссылка Wirebit</label>
+                  <a
+                    href={exchange.wirebit_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={s.wirebitLink}
+                  >
+                    Открыть в Wirebit →
+                  </a>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function ProfilePageContent() {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [verificationStatus, setVerificationStatus] = useState(null);
   const [verificationLoading, setVerificationLoading] = useState(true);
+  const [selectedExchange, setSelectedExchange] = useState(null);
   const [error, setError] = useState("");
 
   const router = useRouter();
@@ -232,6 +365,16 @@ function ProfilePageContent() {
     router.push("/exchange");
   }, [router]);
 
+  // Check if user is admin
+  const isAdmin = () => {
+    if (!user) return false;
+    const adminEmails = ["admin@gmail.com"];
+    const adminUsernames = ["admin", "administrator", "wirebit_admin"];
+    return (
+      adminEmails.includes(user.email) || adminUsernames.includes(user.username)
+    );
+  };
+
   const verificationBlockContent = getVerificationBlockContent();
 
   return (
@@ -256,6 +399,29 @@ function ProfilePageContent() {
           <FiLogOut size={20} />
         </button>
       </div>
+
+      {/* Admin Panel Buttons */}
+      {isAdmin() && (
+        <div className={s.adminPanel}>
+          <h3>Панель администратора</h3>
+          <div className={s.adminButtons}>
+            <button
+              className={s.adminBtn}
+              onClick={() => router.push("/admin")}
+            >
+              <FiSettings size={20} />
+              <span>Админ-панель</span>
+            </button>
+            <button
+              className={s.adminBtn}
+              onClick={() => router.push("/admin/exchanges")}
+            >
+              <FiTrendingUp size={20} />
+              <span>Управление обменами</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Verification Block */}
       {shouldShowVerificationBlock() && verificationBlockContent && (
@@ -298,7 +464,12 @@ function ProfilePageContent() {
           {history.map((item) => {
             const status = statusMap[item.status] || statusMap.new;
             return (
-              <li key={item.id} className={s.card}>
+              <li
+                key={item.id}
+                className={s.card}
+                onClick={() => setSelectedExchange(item)}
+                style={{ cursor: "pointer" }}
+              >
                 <div
                   className={s.statusLine}
                   style={{ backgroundColor: status.color }}
@@ -329,6 +500,14 @@ function ProfilePageContent() {
             );
           })}
         </ul>
+      )}
+
+      {/* Exchange Details Modal */}
+      {selectedExchange && (
+        <ExchangeDetailsModal
+          exchange={selectedExchange}
+          onClose={() => setSelectedExchange(null)}
+        />
       )}
 
       <ToastContainer

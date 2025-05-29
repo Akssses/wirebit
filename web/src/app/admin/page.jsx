@@ -16,6 +16,7 @@ import {
   FiXCircle,
   FiEye,
 } from "react-icons/fi";
+import { MdSwapHoriz } from "react-icons/md";
 
 function AdminPageContent() {
   const [activeTab, setActiveTab] = useState("pending");
@@ -201,6 +202,23 @@ function AdminPageContent() {
           </div>
         </div>
       )}
+
+      {/* Quick Actions */}
+      <div className={s.quickActions}>
+        <h2 className={s.sectionTitle}>Быстрые действия</h2>
+        <div className={s.actionsGrid}>
+          <button
+            className={s.actionCard}
+            onClick={() => router.push("/admin/exchanges")}
+          >
+            <MdSwapHoriz className={s.actionIcon} />
+            <span className={s.actionLabel}>Управление обменами</span>
+            <span className={s.actionDescription}>
+              Просмотр и изменение статусов обменов
+            </span>
+          </button>
+        </div>
+      </div>
 
       {/* Tabs */}
       <div className={s.tabs}>

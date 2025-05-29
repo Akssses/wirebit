@@ -1,20 +1,50 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from sqlalchemy.orm import Session, joinedload
-from typing import List
+from typing import List, Optional
 from datetime import datetime
 
 from auth.dependencies import get_db, get_current_admin
-from models.models import User, VerificationRequest
+from models.models import User, VerificationRequest, ExchangeHistory
 from schemas.admin import (
     VerificationRequestResponse,
     VerificationApprovalRequest,
     UserListResponse,
     AdminStatsResponse
 )
+from schemas.history import ExchangeHistoryResponse, ExchangeHistoryUpdate
+from pydantic import BaseModel
 import logging
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/admin", tags=["admin"])
+
+class ExchangeStatusUpdate(BaseModel):
+    status: str
+    admin_comment: Optional[str] = None
+
+class AdminExchangeResponse(BaseModel):
+    id: int
+    direction_id: str
+    from_currency: str
+    to_currency: str
+    amount_give: float
+    amount_get: float
+    exchange_rate: float
+    bid_id: Optional[str] = None
+    status: str
+    payment_address: Optional[str] = None
+    wirebit_url: Optional[str] = None
+    wallet_address: str
+    email_used: str
+    created_at: datetime
+    updated_at: datetime
+    # User info
+    user_id: int
+    username: str
+    user_email: str
+    
+    class Config:
+        from_attributes = True
 
 
 @router.get("/verification-requests", response_model=List[VerificationRequestResponse])
@@ -220,4 +250,133 @@ async def get_admin_stats(
         )
     except Exception as e:
         logger.error(f"Error getting admin stats: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/exchanges", response_model=List[AdminExchangeResponse])
+async def get_all_exchanges(
+    skip: int = 0,
+    limit: int = 50,
+    status_filter: Optional[str] = None,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    """Get all exchanges for admin management"""
+    try:
+        query = db.query(ExchangeHistory).options(
+            joinedload(ExchangeHistory.user)
+        )
+        
+        if status_filter:
+            query = query.filter(ExchangeHistory.status == status_filter)
+        
+        exchanges = query.order_by(ExchangeHistory.created_at.desc()).offset(skip).limit(limit).all()
+        
+        return [
+            AdminExchangeResponse(
+                id=exchange.id,
+                direction_id=exchange.direction_id,
+                from_currency=exchange.from_currency,
+                to_currency=exchange.to_currency,
+                amount_give=exchange.amount_give,
+                amount_get=exchange.amount_get,
+                exchange_rate=exchange.exchange_rate,
+                bid_id=exchange.bid_id,
+                status=exchange.status,
+                payment_address=exchange.payment_address,
+                wirebit_url=exchange.wirebit_url,
+                wallet_address=exchange.wallet_address,
+                email_used=exchange.email_used,
+                created_at=exchange.created_at,
+                updated_at=exchange.updated_at,
+                user_id=exchange.user_id,
+                username=exchange.user.username if exchange.user else "Unknown",
+                user_email=exchange.user.email if exchange.user else "Unknown"
+            )
+            for exchange in exchanges
+        ]
+    except Exception as e:
+        logger.error(f"Error getting exchanges: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.put("/exchanges/{exchange_id}/status")
+async def update_exchange_status_admin(
+    exchange_id: int,
+    status_update: ExchangeStatusUpdate,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    """Update exchange status as admin"""
+    try:
+        exchange = db.query(ExchangeHistory).filter(
+            ExchangeHistory.id == exchange_id
+        ).first()
+        
+        if not exchange:
+            raise HTTPException(
+                status_code=404,
+                detail="Exchange not found"
+            )
+        
+        # Update status
+        exchange.status = status_update.status
+        exchange.updated_at = datetime.utcnow()
+        
+        db.commit()
+        db.refresh(exchange)
+        
+        logger.info(f"Exchange {exchange_id} status updated to {status_update.status} by admin {admin.username}")
+        
+        return {"success": True, "message": f"Status updated to {status_update.status}"}
+        
+    except Exception as e:
+        logger.error(f"Error updating exchange status: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/exchanges/{exchange_id}")
+async def get_exchange_details_admin(
+    exchange_id: int,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    """Get exchange details for admin"""
+    try:
+        exchange = db.query(ExchangeHistory).options(
+            joinedload(ExchangeHistory.user)
+        ).filter(ExchangeHistory.id == exchange_id).first()
+        
+        if not exchange:
+            raise HTTPException(
+                status_code=404,
+                detail="Exchange not found"
+            )
+        
+        return AdminExchangeResponse(
+            id=exchange.id,
+            direction_id=exchange.direction_id,
+            from_currency=exchange.from_currency,
+            to_currency=exchange.to_currency,
+            amount_give=exchange.amount_give,
+            amount_get=exchange.amount_get,
+            exchange_rate=exchange.exchange_rate,
+            bid_id=exchange.bid_id,
+            status=exchange.status,
+            payment_address=exchange.payment_address,
+            wirebit_url=exchange.wirebit_url,
+            wallet_address=exchange.wallet_address,
+            email_used=exchange.email_used,
+            created_at=exchange.created_at,
+            updated_at=exchange.updated_at,
+            user_id=exchange.user_id,
+            username=exchange.user.username if exchange.user else "Unknown",
+            user_email=exchange.user.email if exchange.user else "Unknown"
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting exchange details: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e)) 

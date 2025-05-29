@@ -137,7 +137,10 @@ async def create_exchange(
             direction_id=request.direction_id,
             amount=request.amount,
             account_to=request.account_to,
-            cf6=request.cf6
+            account2=request.account2,
+            cfgive8=request.cfgive8,
+            cf6=request.cf6,
+            cf11=request.cf11
         )
         
         # If user is authenticated and exchange was successful, save to history
@@ -146,6 +149,18 @@ async def create_exchange(
                 exchange_data = result["data"]
                 
                 if direction:
+                    # Prepare wallet_address and additional data based on exchange type
+                    wallet_address = request.account_to or request.account2
+                    
+                    # Prepare additional data for ruble exchanges
+                    additional_fields = {}
+                    if request.account2:  # This is a ruble exchange
+                        additional_fields.update({
+                            "card_number": request.account2,
+                            "card_holder_name": request.cfgive8,
+                            "telegram": request.cf11
+                        })
+                    
                     # Create history record
                     history_record = ExchangeHistory(
                         user_id=current_user.id,
@@ -159,9 +174,9 @@ async def create_exchange(
                         status=exchange_data.get("status", "new"),
                         payment_address=exchange_data.get("api_actions", {}).get("address"),
                         wirebit_url=exchange_data.get("url"),
-                        wallet_address=request.account_to,
+                        wallet_address=wallet_address,
                         email_used=request.cf6,
-                        additional_data=json.dumps(exchange_data)
+                        additional_data=json.dumps({**exchange_data, **additional_fields})
                     )
                     
                     db.add(history_record)

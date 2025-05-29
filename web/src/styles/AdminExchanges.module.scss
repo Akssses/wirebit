@@ -1,0 +1,676 @@
+$orange: #ffb300;
+$green: #29b352;
+$red: #e53935;
+$bg: #0d0d0d;
+$gray: #2a2a2a;
+$lightGray: #3a3a3a;
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto 80px;
+  padding: 20px;
+  color: #fff;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  color: $orange;
+  margin: 0;
+}
+
+.adminInfo {
+  font-size: 14px;
+  color: #7d7d7d;
+  font-weight: 500;
+
+  span {
+    color: #bbb;
+  }
+}
+
+.filters {
+  margin-bottom: 24px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.statusFilter {
+  padding: 10px 16px;
+  border: 1px solid rgba(#fff, 0.1);
+  border-radius: 12px;
+  background: $gray;
+  font-size: 14px;
+  color: #fff;
+  transition: all 0.2s;
+  font-weight: 500;
+
+  &:focus {
+    outline: none;
+    border-color: rgba($orange, 0.5);
+    background: rgba($orange, 0.05);
+  }
+
+  &:hover {
+    border-color: rgba($orange, 0.3);
+  }
+
+  option {
+    background: $gray;
+    color: #fff;
+  }
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 20px;
+  color: #7d7d7d;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 2px solid rgba($orange, 0.2);
+  border-top: 2px solid $orange;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.empty {
+  text-align: center;
+  padding: 80px 20px;
+  color: #7d7d7d;
+  font-size: 16px;
+
+  p {
+    margin: 0;
+  }
+}
+
+// Card-based table
+.exchangesTable {
+  display: grid;
+  gap: 12px;
+}
+
+.tableHeader {
+  display: none; // Скрываем заголовки для карточного дизайна
+}
+
+.tableRow {
+  background: $gray;
+  border-radius: 16px;
+  padding: 20px;
+  transition: all 0.2s;
+  display: grid;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+
+  // Status indicator line
+  &::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: currentColor;
+  }
+
+  &[data-status="new"]::before {
+    background: $orange;
+  }
+
+  &[data-status="pending"]::before,
+  &[data-status="processing"]::before {
+    background: #4ade80;
+  }
+
+  &[data-status="completed"]::before {
+    background: $green;
+  }
+
+  &[data-status="cancelled"]::before,
+  &[data-status="rejected"]::before {
+    background: $red;
+  }
+}
+
+// Card content
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.exchangeId {
+  font-weight: 600;
+  color: $orange;
+  font-size: 16px;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.userIcon {
+  width: 40px;
+  height: 40px;
+  background: rgba($orange, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $orange;
+  flex-shrink: 0;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.userDetails {
+  min-width: 0;
+}
+
+.username {
+  font-weight: 600;
+  font-size: 16px;
+  color: #fff;
+  margin-bottom: 2px;
+}
+
+.email {
+  font-size: 13px;
+  color: #7d7d7d;
+}
+
+.exchangeDetails {
+  background: rgba(#000, 0.2);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.exchangeRoute {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.amounts {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+
+  span:nth-child(2) {
+    color: #666;
+    font-weight: 400;
+  }
+}
+
+.rate {
+  font-size: 13px;
+  color: #7d7d7d;
+}
+
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.statusContainer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+
+  &.new {
+    background: rgba($orange, 0.1);
+    color: $orange;
+  }
+
+  &.pending,
+  &.processing {
+    background: rgba(#4ade80, 0.1);
+    color: #4ade80;
+  }
+
+  &.completed {
+    background: rgba($green, 0.1);
+    color: $green;
+  }
+
+  &.cancelled,
+  &.rejected {
+    background: rgba($red, 0.1);
+    color: $red;
+  }
+}
+
+.statusIcon {
+  width: 14px;
+  height: 14px;
+}
+
+.date {
+  font-size: 13px;
+  color: #7d7d7d;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.viewBtn,
+.editBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.viewBtn {
+  background: rgba(#fff, 0.05);
+  color: #7d7d7d;
+
+  &:hover {
+    background: rgba(#fff, 0.1);
+    color: #fff;
+    transform: scale(1.05);
+  }
+}
+
+.editBtn {
+  background: rgba($orange, 0.1);
+  color: $orange;
+
+  &:hover {
+    background: rgba($orange, 0.15);
+    transform: scale(1.05);
+  }
+}
+
+// Modal styles
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.statusModal,
+.detailsModal {
+  background: $gray;
+  border-radius: 20px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.statusModal {
+  max-width: 480px;
+}
+
+.detailsModal {
+  max-width: 720px;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 1px solid rgba(#fff, 0.05);
+
+  h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+  }
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #7d7d7d;
+  cursor: pointer;
+  padding: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  transition: all 0.2s;
+
+  &:hover {
+    background: rgba(#fff, 0.05);
+    color: #fff;
+    transform: rotate(90deg);
+  }
+}
+
+.modalBody {
+  padding: 24px;
+}
+
+.exchangeInfo {
+  background: rgba(#000, 0.2);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+
+  p {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    color: #bbb;
+    line-height: 1.5;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    strong {
+      color: #fff;
+      font-weight: 600;
+    }
+  }
+}
+
+.statusSelect {
+  margin-bottom: 24px;
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #fff;
+    font-size: 14px;
+  }
+
+  select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid rgba(#fff, 0.1);
+    border-radius: 12px;
+    background: rgba(#000, 0.2);
+    font-size: 14px;
+    color: #fff;
+    font-weight: 500;
+    transition: all 0.2s;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23999' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    padding-right: 40px;
+
+    &:focus {
+      outline: none;
+      border-color: rgba($orange, 0.5);
+      background-color: rgba($orange, 0.05);
+    }
+
+    option {
+      background: $gray;
+      color: #fff;
+      padding: 8px;
+    }
+  }
+}
+
+.modalActions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.cancelBtn,
+.updateBtn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.cancelBtn {
+  background: rgba(#fff, 0.05);
+  color: #bbb;
+
+  &:hover:not(:disabled) {
+    background: rgba(#fff, 0.1);
+    color: #fff;
+  }
+}
+
+.updateBtn {
+  background: $orange;
+  color: #000;
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    background: #444;
+    color: #666;
+  }
+}
+
+// Details modal specific styles
+.detailsGrid {
+  display: grid;
+  gap: 24px;
+}
+
+.detailSection {
+  h4 {
+    font-size: 16px;
+    font-weight: 600;
+    color: $orange;
+    margin: 0 0 16px 0;
+  }
+}
+
+.detailItem {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+  align-items: start;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  label {
+    font-size: 13px;
+    color: #7d7d7d;
+    font-weight: 500;
+  }
+
+  span {
+    font-size: 14px;
+    color: #fff;
+    font-weight: 500;
+    word-break: break-word;
+  }
+
+  .address {
+    font-family: "SF Mono", Monaco, monospace;
+    background: rgba(#000, 0.3);
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  a {
+    color: $orange;
+    text-decoration: none;
+    font-weight: 500;
+    transition: opacity 0.2s;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+    margin-bottom: 70px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .exchangeDetails {
+    padding: 12px;
+  }
+
+  .amounts {
+    font-size: 16px;
+    flex-wrap: wrap;
+  }
+
+  .cardFooter {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .statusContainer {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .detailItem {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .modalOverlay {
+    padding: 10px;
+  }
+
+  .modalHeader {
+    padding: 20px;
+  }
+
+  .modalBody {
+    padding: 20px;
+  }
+}

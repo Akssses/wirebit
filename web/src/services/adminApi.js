@@ -106,6 +106,62 @@ class AdminApi {
 
     return response.json();
   }
+
+  // Exchange management methods
+  async getAllExchanges({ skip = 0, limit = 50, status_filter = "" } = {}) {
+    const params = new URLSearchParams();
+    if (skip) params.append("skip", skip);
+    if (limit) params.append("limit", limit);
+    if (status_filter) params.append("status_filter", status_filter);
+
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/exchanges?${params.toString()}`,
+      {
+        headers: this.getHeaders(),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Failed to fetch exchanges");
+    }
+
+    return response.json();
+  }
+
+  async getExchangeDetails(exchangeId) {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/exchanges/${exchangeId}`,
+      {
+        headers: this.getHeaders(),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Failed to fetch exchange details");
+    }
+
+    return response.json();
+  }
+
+  async updateExchangeStatus(exchangeId, statusData) {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/exchanges/${exchangeId}/status`,
+      {
+        method: "PUT",
+        headers: this.getHeaders(),
+        body: JSON.stringify(statusData),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Failed to update exchange status");
+    }
+
+    return response.json();
+  }
 }
 
 export default new AdminApi();

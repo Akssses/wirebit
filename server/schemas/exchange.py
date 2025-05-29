@@ -25,8 +25,17 @@ class CurrencyResponse(BaseModel):
 class CreateExchangeRequest(BaseModel):
     direction_id: str
     amount: float = Field(gt=0)
-    account_to: str = Field(min_length=1, alias="account_to")
-    cf6: str = Field(alias="cf6")
+    
+    # Поля для крипто обменов
+    account_to: Optional[str] = None
+    
+    # Поля для рублевых обменов
+    account2: Optional[str] = None  # номер карты
+    cfgive8: Optional[str] = None  # имя владельца карты
+    cf11: Optional[str] = None     # telegram/whatsapp
+    
+    # Общее поле
+    cf6: str = Field(min_length=1)  # email
     
     class Config:
         populate_by_name = True

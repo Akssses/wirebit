@@ -7,11 +7,6 @@ import s from "./LanguageModal.module.scss";
 const languages = [
   { code: "ru", label: "Русский", flag: "🇷🇺" },
   { code: "en", label: "English", flag: "🇬🇧" },
-  { code: "de", label: "Deutsch", flag: "🇩🇪" },
-  { code: "it", label: "Italiano", flag: "🇮🇹" },
-  { code: "he", label: "עברית", flag: "🇮🇱" },
-  { code: "pl", label: "Polski", flag: "🇵🇱" },
-  { code: "es", label: "Español", flag: "🇪🇸" },
 ];
 
 export default function LanguageModal({ isOpen, onClose, onSelect }) {

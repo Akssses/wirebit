@@ -167,7 +167,9 @@ class WirebitClient:
             logger.error(f"Error getting directions: {str(e)}")
             raise
     
-    def create_bid(self, direction_id: str, amount: float, account_to: str, cf6: str) -> Dict[str, Any]:
+    def create_bid(self, direction_id: str, amount: float, account_to: Optional[str] = None, 
+                   account2: Optional[str] = None, cfgive8: Optional[str] = None,
+                   cf6: str = "", cf11: Optional[str] = None) -> Dict[str, Any]:
         """Create exchange bid"""
         try:
             # Use form data with correct parameter names
@@ -175,9 +177,47 @@ class WirebitClient:
                 "direction_id": str(direction_id),
                 "calc_amount": str(amount),
                 "calc_action": "1",  # 1 = amount I'm giving
-                "account2": account_to,
-                "cf6": cf6 or "test@example.com"
             }
+            
+            # Add email (required field)
+            if cf6:
+                payload["cf6"] = cf6
+            else:
+                payload["cf6"] = "test@example.com"
+            
+            # Add crypto fields if provided
+            if account_to:
+                payload["account2"] = account_to
+            
+            # Add ruble fields if provided
+            if account2:
+                payload["account2"] = account2
+                # For ruble exchanges, add required additional fields
+                payload["account1"] = account2  # Duplicate card number to account1
+            if cfgive8:
+                payload["cfgive8"] = cfgive8
+                # For ruble exchanges, automatically fill cf1, cf2, cf3 from cfgive8 if needed
+                if account2 and cfgive8:  # This is a ruble exchange
+                    name_parts = cfgive8.strip().split()
+                    if len(name_parts) >= 3:
+                        payload["cf3"] = name_parts[0]  # Фамилия
+                        payload["cf1"] = name_parts[1]  # Имя  
+                        payload["cf2"] = name_parts[2]  # Отчество
+                    elif len(name_parts) == 2:
+                        payload["cf3"] = name_parts[0]  # Фамилия
+                        payload["cf1"] = name_parts[1]  # Имя
+                        payload["cf2"] = ""  # Отчество пустое
+                    else:
+                        payload["cf1"] = cfgive8  # Если одно слово, используем как имя
+                        payload["cf2"] = ""
+                        payload["cf3"] = ""
+                    
+                    # Add additional required fields for ruble exchanges
+                    payload["cf10"] = cfgive8  # ФИО получателя
+                    payload["cfget1"] = cfgive8  # ФИО получателя (полное ФИО)
+                    payload["cfget9"] = cfgive8  # ФИО получателя (дублируем)
+            if cf11:
+                payload["cf11"] = cf11
             
             # Use form headers for this request
             form_headers = {
@@ -185,6 +225,8 @@ class WirebitClient:
                 "API-LOGIN": settings.wirebit_api_login,
                 "Content-Type": "application/x-www-form-urlencoded"
             }
+            
+            logger.info(f"Creating bid with payload: {payload}")
             
             response = requests.post(
                 f"{self.base_url}create_bid",
@@ -214,11 +256,17 @@ class WirebitClient:
                     
                     # Check for specific field errors
                     if "account2" in error_fields:
-                        error_msg = "Неправильный адрес кошелька получателя. Проверьте формат адреса."
+                        error_msg = "Неправильный адрес кошелька получателя или номер карты. Проверьте формат данных."
                     elif "calc_amount" in error_fields:
                         error_msg = "Неправильная сумма обмена. Проверьте минимальные и максимальные лимиты."
                     elif "cf6" in error_fields:
                         error_msg = "Неправильный формат email адреса."
+                    elif "cf1" in error_fields or "cf2" in error_fields or "cf3" in error_fields:
+                        error_msg = "Неправильно заполнены персональные данные (имя, отчество, фамилия)."
+                    elif "cf4" in error_fields:
+                        error_msg = "Неправильный формат номера телефона."
+                    elif "cfgive8" in error_fields:
+                        error_msg = "Неправильно указано ФИО владельца карты."
                 
                 # Generic error message improvements
                 if error_msg == "Ошибка!":
