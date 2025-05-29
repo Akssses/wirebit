@@ -4,8 +4,9 @@ import React, { useState } from "react";
 import { FaGlobe, FaCommentDots } from "react-icons/fa";
 import s from "@/styles/HomePage.module.scss";
 import LanguageModal from "@/components/shared/LanguageModal/LanguageModal";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
-export default function Home() {
+function HomePageContent() {
   const [langModalOpen, setLangModalOpen] = useState(false);
   const [lang, setLang] = useState("ru");
 
@@ -69,5 +70,13 @@ export default function Home() {
         </p>
       </section>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <ProtectedRoute>
+      <HomePageContent />
+    </ProtectedRoute>
   );
 }

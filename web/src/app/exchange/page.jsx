@@ -1,17 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FiChevronDown, FiUser, FiInfo } from "react-icons/fi";
+import { FiChevronDown, FiUser, FiInfo, FiAlertTriangle } from "react-icons/fi";
 import cx from "classnames";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import s from "@/styles/ExchangePage.module.scss";
 import api from "@/services/api";
-import StatusChecker from "@/components/StatusChecker";
 import { useAuth } from "@/contexts/AuthContext";
+import verificationApi from "@/services/verificationApi";
 import Link from "next/link";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
-export default function ExchangePage() {
+function ExchangePageContent() {
   const [from, setFrom] = useState(null);
   const [to, setTo] = useState(null);
   const [amount, setAmount] = useState("");
@@ -22,21 +23,29 @@ export default function ExchangePage() {
   const [currencies, setCurrencies] = useState([]);
   const [availableTo, setAvailableTo] = useState([]);
   const [directions, setDirections] = useState([]);
+  const [verificationStatus, setVerificationStatus] = useState(null);
+  const [verificationRequired, setVerificationRequired] = useState(false);
 
-  const { isAuthenticated, user } = useAuth();
+  const { user } = useAuth();
 
   // Загрузка валют при монтировании
   useEffect(() => {
     loadCurrencies();
     loadDirections();
+    loadVerificationStatus();
   }, []);
 
   // Предзаполнение email из профиля пользователя
   useEffect(() => {
-    if (isAuthenticated && user?.email && !email) {
+    if (user?.email && !email) {
       setEmail(user.email);
     }
-  }, [isAuthenticated, user, email]);
+  }, [user, email]);
+
+  // Проверка требований верификации при изменении валют
+  useEffect(() => {
+    checkVerificationRequirements();
+  }, [from, to, verificationStatus]);
 
   // Загрузка доступных валют для получения при изменении from
   useEffect(() => {
@@ -73,6 +82,33 @@ export default function ExchangePage() {
     } catch (error) {
       toast.error("Ошибка загрузки направлений обмена");
     }
+  };
+
+  const loadVerificationStatus = async () => {
+    try {
+      const status = await verificationApi.getVerificationStatus();
+      setVerificationStatus(status);
+    } catch (error) {
+      console.error("Error loading verification status:", error);
+    }
+  };
+
+  const checkVerificationRequirements = () => {
+    if (!from || !to) {
+      setVerificationRequired(false);
+      return;
+    }
+
+    // Проверяем, требуется ли верификация для Zelle USD -> RUB обменов
+    const isZelleToRub =
+      from.title === "Zelle USD" &&
+      (to.title === "Банковская карта RUB" ||
+        to.title === "СБП RUB" ||
+        to.title === "Сбербанк RUB" ||
+        to.title === "Т-Банк RUB" ||
+        to.title === "Альфа-Банк RUB");
+
+    setVerificationRequired(isZelleToRub);
   };
 
   const getDirection = () => {
@@ -173,9 +209,69 @@ export default function ExchangePage() {
     return Object.keys(e).length === 0;
   };
 
+  const getVerificationBlockType = () => {
+    if (!verificationRequired) return null;
+
+    if (!verificationStatus) {
+      return {
+        type: "verification",
+        title: "Требуется верификация",
+        message:
+          "Для обмена Zelle USD на рублевые платежные системы необходимо пройти верификацию аккаунта.",
+        actionText: "Пройти верификацию",
+        actionLink: "/verification",
+        canProceed: false,
+      };
+    }
+
+    switch (verificationStatus.verification_status) {
+      case "approved":
+        return null; // Верификация пройдена, можно продолжать
+
+      case "pending":
+        return {
+          type: "pending",
+          title: "Верификация на рассмотрении",
+          message:
+            "Ваша заявка на верификацию находится в обработке. Дождитесь подтверждения администратора для совершения этого обмена.",
+          actionText: "Проверить статус",
+          actionLink: "/verification",
+          canProceed: false,
+        };
+
+      case "rejected":
+        return {
+          type: "rejected",
+          title: "Верификация отклонена",
+          message:
+            "Ваша заявка на верификацию была отклонена. Подайте новую заявку или обратитесь в службу поддержки.",
+          actionText: "Повторить верификацию",
+          actionLink: "/verification",
+          canProceed: false,
+        };
+
+      default:
+        return {
+          type: "verification",
+          title: "Требуется верификация",
+          message:
+            "Для обмена Zelle USD на рублевые платежные системы необходимо пройти верификацию аккаунта.",
+          actionText: "Пройти верификацию",
+          actionLink: "/verification",
+          canProceed: false,
+        };
+    }
+  };
+
   const handleSubmit = async (ev) => {
     ev.preventDefault();
     if (!validate()) return;
+
+    const verificationBlock = getVerificationBlockType();
+    if (verificationBlock && !verificationBlock.canProceed) {
+      toast.error(verificationBlock.message);
+      return;
+    }
 
     const direction = getDirection();
     if (!direction) {
@@ -194,19 +290,11 @@ export default function ExchangePage() {
 
       if (result.success) {
         const successMessage = result.message || "Заявка успешно создана!";
-        if (isAuthenticated) {
-          toast.success(successMessage + " Обмен сохранен в вашей истории.");
-        } else {
-          toast.success(successMessage);
-        }
+        toast.success(successMessage + " Обмен сохранен в вашей истории.");
 
         // Очистка формы
         setAmount("");
         setWallet("");
-        // Не очищаем email если пользователь авторизован
-        if (!isAuthenticated) {
-          setEmail("");
-        }
         setFrom(null);
         setTo(null);
 
@@ -224,6 +312,8 @@ export default function ExchangePage() {
     }
   };
 
+  const verificationBlock = getVerificationBlockType();
+
   return (
     <>
       <form className={s.wrap} onSubmit={handleSubmit}>
@@ -231,27 +321,19 @@ export default function ExchangePage() {
           <h1 className={s.pageTitle}>Обмен валют</h1>
 
           {/* User Status */}
-          {isAuthenticated ? (
-            <div className={s.userInfo}>
-              <div className={s.userHeader}>
-                <FiUser className={s.userIcon} />
-                <span className={s.username}>
-                  Вы авторизованы как {user?.username}
-                </span>
-              </div>
+          <div className={s.userInfo}>
+            <div className={s.user_info_flex}>
+              <FiUser className={s.userIcon} />
+              <span className={s.username}>
+                Вы авторизованы как {user?.username}
+              </span>
+            </div>
 
-              <div className={s.authBenefit}>
-                <FiInfo className={s.infoIcon} />
-                <span>Обмены сохраняются в истории</span>
-              </div>
+            <div className={s.authBenefit}>
+              <FiInfo className={s.infoIcon} />
+              <span>Обмены сохраняются в истории</span>
             </div>
-          ) : (
-            <div className={s.authPrompt}>
-              <Link href="/login" className={s.loginPrompt}>
-                Войдите в аккаунт для сохранения истории обменов
-              </Link>
-            </div>
-          )}
+          </div>
         </div>
 
         <CurrencySelect
@@ -270,6 +352,25 @@ export default function ExchangePage() {
           error={errors.to}
           disabled={!from}
         />
+
+        {/* Verification Warning Block */}
+        {verificationBlock && (
+          <div
+            className={`${s.verificationWarning} ${s[verificationBlock.type]}`}
+          >
+            <div className={s.warningHeader}>
+              <FiAlertTriangle className={s.warningIcon} />
+              <span className={s.warningTitle}>{verificationBlock.title}</span>
+            </div>
+            <p className={s.warningMessage}>{verificationBlock.message}</p>
+            <Link
+              href={verificationBlock.actionLink}
+              className={s.warningAction}
+            >
+              {verificationBlock.actionText}
+            </Link>
+          </div>
+        )}
 
         <div className={cx(s.field, errors.amount && s.error)}>
           <label>Сумма*</label>
@@ -320,22 +421,25 @@ export default function ExchangePage() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            disabled={isAuthenticated && user?.email}
+            disabled={!!user?.email}
           />
           {errors.email && <span className={s.msg}>{errors.email}</span>}
-          {isAuthenticated && user?.email && (
+          {user?.email && (
             <span className={s.helperText}>
               Используется email из вашего профиля
             </span>
           )}
         </div>
 
-        <button className={s.submit} disabled={loading}>
+        <button
+          className={s.submit}
+          disabled={
+            loading || (verificationBlock && !verificationBlock.canProceed)
+          }
+        >
           {loading ? "Обработка..." : "Подтвердить"}
         </button>
       </form>
-
-      {/* <StatusChecker /> */}
 
       <ToastContainer
         position="top-right"
@@ -425,5 +529,13 @@ function CurrencySelect({
         </ul>
       )}
     </div>
+  );
+}
+
+export default function ExchangePage() {
+  return (
+    <ProtectedRoute>
+      <ExchangePageContent />
+    </ProtectedRoute>
   );
 }

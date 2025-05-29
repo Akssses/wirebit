@@ -19,10 +19,16 @@ class UserResponse(BaseModel):
     username: str
     email: str
     is_active: bool
+    is_verified: bool
+    verification_status: str
     created_at: datetime
     
     class Config:
         from_attributes = True
+
+
+class UserInDB(UserResponse):
+    hashed_password: str
 
 
 class Token(BaseModel):

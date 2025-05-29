@@ -14,6 +14,7 @@ from services.wirebit_client import wirebit_client
 from auth.dependencies import get_db, get_current_user_optional
 from models.models import User, ExchangeHistory
 from sqlalchemy.orm import Session
+from routes.verification import check_verification_required
 import json
 
 
@@ -91,6 +92,47 @@ async def create_exchange(
 ):
     """Create exchange bid"""
     try:
+        # Get direction details for verification check
+        directions = wirebit_client.get_directions()
+        direction = next((d for d in directions if d["direction_id"] == request.direction_id), None)
+        
+        if not direction:
+            raise HTTPException(
+                status_code=400,
+                detail="Направление обмена не найдено"
+            )
+        
+        from_currency = direction["from"]
+        to_currency = direction["to"]
+        
+        # Check if verification is required
+        verification_required = check_verification_required(from_currency, to_currency)
+        
+        if verification_required:
+            if not current_user:
+                return CreateExchangeResponse(
+                    success=False,
+                    message="Для обмена Zelle USD на рублевые платежные системы требуется авторизация и верификация аккаунта. Пожалуйста, войдите в аккаунт."
+                )
+            
+            if not current_user.is_verified:
+                if current_user.verification_status == "pending":
+                    return CreateExchangeResponse(
+                        success=False,
+                        message="Ваша заявка на верификацию находится в обработке. Дождитесь подтверждения администратора."
+                    )
+                elif current_user.verification_status == "rejected":
+                    return CreateExchangeResponse(
+                        success=False,
+                        message="Ваша заявка на верификацию была отклонена. Обратитесь в службу поддержки."
+                    )
+                else:
+                    return CreateExchangeResponse(
+                        success=False,
+                        message="Для обмена Zelle USD на рублевые платежные системы требуется верификация аккаунта. Пройдите верификацию в профиле.",
+                        verification_required=True
+                    )
+        
         result = wirebit_client.create_bid(
             direction_id=request.direction_id,
             amount=request.amount,
@@ -102,10 +144,6 @@ async def create_exchange(
         if current_user and result.get("success") and result.get("data"):
             try:
                 exchange_data = result["data"]
-                
-                # Get direction details for currencies
-                directions = wirebit_client.get_directions()
-                direction = next((d for d in directions if d["direction_id"] == request.direction_id), None)
                 
                 if direction:
                     # Create history record

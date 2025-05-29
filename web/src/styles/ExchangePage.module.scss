@@ -1,5 +1,6 @@
 $orange: #ffb300;
 $red: #e53935;
+$green: #29b352;
 $bg: #0d0d0d;
 $gray: #2a2a2a;
 
@@ -29,6 +30,12 @@ $gray: #2a2a2a;
   border: 1px solid rgba($orange, 0.3);
   border-radius: 16px;
   padding: 16px;
+
+  .user_info_flex {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
 
   .username {
     display: flex;
@@ -78,6 +85,86 @@ $gray: #2a2a2a;
     &:hover {
       text-decoration: underline;
     }
+  }
+}
+
+.verificationWarning {
+  margin-bottom: 28px;
+  padding: 20px;
+  border-radius: 16px;
+  border: 2px solid;
+
+  &.login {
+    background: rgba($orange, 0.05);
+    border-color: rgba($orange, 0.3);
+  }
+
+  &.verification {
+    background: rgba($orange, 0.05);
+    border-color: rgba($orange, 0.3);
+  }
+
+  &.pending {
+    background: rgba($orange, 0.05);
+    border-color: rgba($orange, 0.3);
+  }
+
+  &.rejected {
+    background: rgba($red, 0.05);
+    border-color: rgba($red, 0.3);
+  }
+}
+
+.warningHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+
+  .warningIcon {
+    font-size: 20px;
+    color: $orange;
+
+    .rejected & {
+      color: $red;
+    }
+  }
+
+  .warningTitle {
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+  }
+}
+
+.warningMessage {
+  color: #cfcfcf;
+  line-height: 1.5;
+  margin-bottom: 16px;
+  margin: 0 0 16px 0;
+}
+
+.warningAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: $orange;
+  color: #000;
+  padding: 10px 16px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s;
+
+  &:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+
+  .rejected & {
+    background: $red;
+    color: #fff;
   }
 }
 

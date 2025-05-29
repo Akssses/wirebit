@@ -1,10 +1,9 @@
-// src/components/Navbar/Navbar.jsx
 "use client";
 
 import React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { FiHome, FiLogIn, FiLogOut } from "react-icons/fi";
+import { FiHome, FiUser } from "react-icons/fi";
 import { MdSwapHoriz, MdShowChart, MdHistory } from "react-icons/md";
 import { useAuth } from "@/contexts/AuthContext";
 import s from "./Navbar.module.scss";
@@ -28,9 +27,9 @@ export default function Navbar() {
     { to: "/exchange", Icon: MdSwapHoriz, label: "Обмен" },
     { to: "/rates", Icon: MdShowChart, label: "Курс" },
     {
-      to: "/history",
-      Icon: MdHistory,
-      label: "История",
+      to: "/profile",
+      Icon: FiUser,
+      label: "Профиль",
       requireAuth: true,
     },
   ];
@@ -61,30 +60,6 @@ export default function Navbar() {
       })}
 
       {/* User/Auth section */}
-      <div
-        className={`${s.navItem} ${
-          pathname === "/login" || pathname === "/register" ? s.active : ""
-        }`}
-        onClick={handleAuthClick}
-        style={{ cursor: "pointer" }}
-      >
-        <div className={s.iconWrapper}>
-          {isAuthenticated ? (
-            <FiLogOut
-              size={24}
-              color={pathname === "/profile" ? "#f6a016" : "#8a8a8a"}
-            />
-          ) : (
-            <FiLogIn
-              size={24}
-              color={pathname === "/login" ? "#f6a016" : "#8a8a8a"}
-            />
-          )}
-        </div>
-        <span className={s.label}>
-          {isAuthenticated ? "Выйти" || "Профиль" : "Войти"}
-        </span>
-      </div>
     </nav>
   );
 }

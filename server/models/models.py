@@ -1,21 +1,25 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime, Text, ForeignKey, Boolean
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-from database import Base
 from datetime import datetime
 
+Base = declarative_base()
 
 class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True, nullable=False)
     username = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean, default=True)
+    is_verified = Column(Boolean, default=False)
+    verification_status = Column(String, default="not_requested")  # not_requested, pending, approved, rejected
     created_at = Column(DateTime, default=datetime.utcnow)
     
-    # Relationship to exchange history
+    # Relationships
     exchanges = relationship("ExchangeHistory", back_populates="user")
+    verification_requests = relationship("VerificationRequest", back_populates="user")
 
 
 class ExchangeHistory(Base):
@@ -39,8 +43,8 @@ class ExchangeHistory(Base):
     wirebit_url = Column(String, nullable=True)
     
     # User data
-    wallet_address = Column(String, nullable=False)  # Where user wants to receive
-    email_used = Column(String, nullable=False)
+    wallet_address = Column(String, nullable=True)
+    email_used = Column(String, nullable=True)
     
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -51,3 +55,21 @@ class ExchangeHistory(Base):
     
     # Relationship to user
     user = relationship("User", back_populates="exchanges") 
+
+
+class VerificationRequest(Base):
+    __tablename__ = "verification_requests"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    filename = Column(String, nullable=False)
+    file_path = Column(String, nullable=False)
+    file_size = Column(Integer, nullable=False)
+    status = Column(String, default="pending")  # pending, approved, rejected
+    admin_notes = Column(Text, nullable=True)
+    submitted_at = Column(DateTime, default=datetime.utcnow)
+    reviewed_at = Column(DateTime, nullable=True)
+    reviewed_by = Column(String, nullable=True)  # Admin username who reviewed
+    
+    # Relationships
+    user = relationship("User", back_populates="verification_requests") 
