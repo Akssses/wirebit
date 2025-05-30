@@ -29,7 +29,6 @@ app = FastAPI(
     title="Wirebit Exchange API",
     description="Backend API for cryptocurrency exchange integration with Wirebit",
     version="1.0.0",
-    root_path="/api"
 )
 
 # Configure CORS
