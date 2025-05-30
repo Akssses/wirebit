@@ -50,7 +50,7 @@ except Exception as e:
 
 # Include routers with prefixes
 app.include_router(exchange.router, prefix="/exchange")
-app.include_router(auth.router, prefix="/auth")
+app.include_router(auth.router, prefix="/api")
 app.include_router(history.router, prefix="/history")
 app.include_router(verification.router, prefix="/verification")
 app.include_router(admin.router, prefix="/admin")

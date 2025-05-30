@@ -6,7 +6,7 @@ from models.models import User
 from schemas.auth import UserCreate, UserLogin, UserResponse, Token
 import logging
 
-router = APIRouter(prefix="/api/auth", tags=["auth"])
+router = APIRouter(prefix="/auth", tags=["auth"])
 logger = logging.getLogger(__name__)
 
 
