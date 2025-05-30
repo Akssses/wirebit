@@ -6,12 +6,14 @@ import { usePathname, useRouter } from "next/navigation";
 import { FiHome, FiUser } from "react-icons/fi";
 import { MdSwapHoriz, MdShowChart, MdHistory } from "react-icons/md";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import s from "./Navbar.module.scss";
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { isAuthenticated, user, logout } = useAuth();
+  const { t } = useLanguage();
 
   const handleAuthClick = () => {
     if (isAuthenticated) {
@@ -23,13 +25,13 @@ export default function Navbar() {
   };
 
   const items = [
-    { to: "/", Icon: FiHome, label: "Главная" },
-    { to: "/exchange", Icon: MdSwapHoriz, label: "Обмен" },
-    { to: "/rates", Icon: MdShowChart, label: "Курс" },
+    { to: "/", Icon: FiHome, label: t("nav.home") },
+    { to: "/exchange", Icon: MdSwapHoriz, label: t("nav.exchange") },
+    { to: "/rates", Icon: MdShowChart, label: t("nav.rates") },
     {
       to: "/profile",
       Icon: FiUser,
-      label: "Профиль",
+      label: t("nav.profile"),
       requireAuth: true,
     },
   ];

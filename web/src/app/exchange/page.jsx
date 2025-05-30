@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import verificationApi from "@/services/verificationApi";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 function ExchangePageContent() {
   const [from, setFrom] = useState(null);
@@ -18,6 +19,7 @@ function ExchangePageContent() {
   const [amount, setAmount] = useState("");
   const [wallet, setWallet] = useState("");
   const [email, setEmail] = useState("");
+  const { t } = useLanguage();
 
   // Поля для рублевых обменов
   const [cardNumber, setCardNumber] = useState("");
@@ -395,26 +397,26 @@ function ExchangePageContent() {
     <>
       <form className={s.wrap} onSubmit={handleSubmit}>
         <div className={s.header}>
-          <h1 className={s.pageTitle}>Обмен валют</h1>
+          <h1 className={s.pageTitle}>{t("exchange.title")}</h1>
 
           {/* User Status */}
           <div className={s.userInfo}>
             <div className={s.user_info_flex}>
               <FiUser className={s.userIcon} />
               <span className={s.username}>
-                Вы авторизованы как {user?.username}
+                {t("exchange.loggedInAs", { username: user?.username })}
               </span>
             </div>
 
             <div className={s.authBenefit}>
               <FiInfo className={s.infoIcon} />
-              <span>Обмены сохраняются в истории</span>
+              <span>{t("exchange.historyBenefit")}</span>
             </div>
           </div>
         </div>
 
         <CurrencySelect
-          label="Отдаю"
+          label={t("exchange.give")}
           value={from}
           onChange={setFrom}
           currencies={currencies}
@@ -422,7 +424,7 @@ function ExchangePageContent() {
         />
 
         <CurrencySelect
-          label="Получаю"
+          label={t("exchange.receive")}
           value={to}
           onChange={setTo}
           currencies={availableTo}
@@ -450,7 +452,7 @@ function ExchangePageContent() {
         )}
 
         <div className={cx(s.field, errors.amount && s.error)}>
-          <label>Сумма*</label>
+          <label>{t("exchange.amount")}</label>
           <input
             type="number"
             placeholder="00.00"
@@ -461,18 +463,22 @@ function ExchangePageContent() {
           {errors.amount && <span className={s.msg}>{errors.amount}</span>}
           {!errors.amount && getDirection() && (
             <div className="flex justify-end gap-[10px] mr-[20px]">
-              <span className={s.limits}>Min: {getDirection().min}</span>
-              <span className={s.limits}>Max: {getDirection().max}</span>
+              <span className={s.limits}>
+                {t("exchange.min")}: {getDirection().min}
+              </span>
+              <span className={s.limits}>
+                {t("exchange.max")}: {getDirection().max}
+              </span>
             </div>
           )}
         </div>
 
         {from && to && amount && getRate() && (
           <div className={s.readonlyField}>
-            <label>Вы получите</label>
+            <label>{t("exchange.youWillReceive")}</label>
             <input value={receive().toFixed(6)} readOnly tabIndex={-1} />
             <span className={s.rate}>
-              Курс: 1 {from.title} = {getRate()} {to.title}
+              {t("exchange.rate")}: 1 {from.title} = {getRate()} {to.title}
             </span>
           </div>
         )}
@@ -481,11 +487,9 @@ function ExchangePageContent() {
         {isRubDirection() ? (
           <>
             <div className={cx(s.field, errors.cardNumber && s.error)}>
-              <label>
-                На карту<span>*</span>
-              </label>
+              <label>{t("exchange.cardNumber")}</label>
               <input
-                placeholder="0000 0000 0000 0000"
+                placeholder={t("exchange.enterCardNumber")}
                 value={cardNumber}
                 onChange={handleCardNumberChange}
                 maxLength={19}
@@ -496,11 +500,9 @@ function ExchangePageContent() {
             </div>
 
             <div className={cx(s.field, errors.cardHolderName && s.error)}>
-              <label>
-                ФИО владельца карты<span>*</span>
-              </label>
+              <label>{t("exchange.cardHolderName")}</label>
               <input
-                placeholder="Иванов Иван Иванович"
+                placeholder={t("exchange.enterCardHolderName")}
                 value={cardHolderName}
                 onChange={(e) => setCardHolderName(e.target.value)}
               />
@@ -510,11 +512,9 @@ function ExchangePageContent() {
             </div>
 
             <div className={cx(s.field, errors.telegram && s.error)}>
-              <label>
-                WhatsApp/Telegram<span>*</span>
-              </label>
+              <label>{t("exchange.telegram")}</label>
               <input
-                placeholder="@username или +7 900 123 45 67"
+                placeholder={t("exchange.enterTelegram")}
                 value={telegram}
                 onChange={(e) => setTelegram(e.target.value)}
               />
@@ -537,7 +537,7 @@ function ExchangePageContent() {
               {errors.email && <span className={s.msg}>{errors.email}</span>}
               {user?.email && (
                 <span className={s.helperText}>
-                  Используется email из вашего профиля
+                  {t("exchange.emailFromProfile")}
                 </span>
               )}
             </div>
@@ -547,10 +547,11 @@ function ExchangePageContent() {
             {/* Поля для крипто обменов */}
             <div className={cx(s.field, errors.wallet && s.error)}>
               <label>
-                ID кошелька получателя<span>*</span>
+                {t("exchange.walletId")}
+                <span>*</span>
               </label>
               <input
-                placeholder="Укажите ID"
+                placeholder={t("exchange.enterWalletId")}
                 value={wallet}
                 onChange={(e) => setWallet(e.target.value)}
               />
@@ -559,10 +560,11 @@ function ExchangePageContent() {
 
             <div className={cx(s.field, errors.email && s.error)}>
               <label>
-                Персональная информация<span>*</span>
+                {t("exchange.personalInfo")}
+                <span>*</span>
               </label>
               <input
-                placeholder="Укажите Email"
+                placeholder={t("exchange.enterEmail")}
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -571,7 +573,7 @@ function ExchangePageContent() {
               {errors.email && <span className={s.msg}>{errors.email}</span>}
               {user?.email && (
                 <span className={s.helperText}>
-                  Используется email из вашего профиля
+                  {t("exchange.emailFromProfile")}
                 </span>
               )}
             </div>
@@ -584,7 +586,7 @@ function ExchangePageContent() {
             loading || (verificationBlock && !verificationBlock.canProceed)
           }
         >
-          {loading ? "Обработка..." : "Подтвердить"}
+          {loading ? t("common.loading") : t("exchange.submit")}
         </button>
       </form>
 
@@ -613,6 +615,7 @@ function CurrencySelect({
   disabled,
 }) {
   const [open, setOpen] = useState(false);
+  const { t } = useLanguage();
 
   return (
     <div className={cx(s.selectWrap, error && s.error, disabled && s.disabled)}>
@@ -641,7 +644,9 @@ function CurrencySelect({
           </>
         ) : (
           <span className={s.placeholder}>
-            {disabled ? "Сначала выберите валюту отправки" : "Выберите валюту"}
+            {disabled
+              ? t("exchange.selectGiveCurrencyFirst")
+              : t("exchange.selectCurrency")}
           </span>
         )}
         <FiChevronDown className={cx(s.chevron, open && s.open)} />

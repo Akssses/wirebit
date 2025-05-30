@@ -1,0 +1,97 @@
+.languageButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .globeIcon {
+    font-size: 18px;
+  }
+
+  .currentLang {
+    font-size: 14px;
+    font-weight: 500;
+  }
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  min-width: 300px;
+  max-width: 90%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+
+  h3 {
+    margin: 0 0 20px;
+    color: #1a1a1a;
+    font-size: 18px;
+    font-weight: 600;
+  }
+}
+
+.languageList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.languageOption {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #f5f5f5;
+  }
+
+  &.active {
+    background: #f0f7ff;
+    color: #0066cc;
+  }
+
+  .flag {
+    font-size: 20px;
+  }
+
+  .langName {
+    flex-grow: 1;
+    font-size: 16px;
+  }
+
+  .activeIndicator {
+    color: #0066cc;
+    font-weight: bold;
+  }
+}

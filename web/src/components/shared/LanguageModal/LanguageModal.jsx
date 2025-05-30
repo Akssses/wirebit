@@ -3,6 +3,7 @@
 
 import React, { useEffect } from "react";
 import s from "./LanguageModal.module.scss";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const languages = [
   { code: "ru", label: "Русский", flag: "🇷🇺" },

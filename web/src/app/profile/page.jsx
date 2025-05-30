@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import s from "@/styles/ProfilePage.module.scss";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import historyApi from "@/services/historyApi";
 import verificationApi from "@/services/verificationApi";
 import { toast, ToastContainer } from "react-toastify";
@@ -19,35 +20,43 @@ import {
 } from "react-icons/fi";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
-const statusMap = {
-  new: { label: "Новая", color: "#ffb300" },
-  pending: { label: "Ожидается", color: "#ffb300" },
-  processing: { label: "Обрабатывается", color: "#4ade80" },
-  completed: { label: "Завершена", color: "#29b352" },
-  cancelled: { label: "Отменена", color: "#e53935" },
-  rejected: { label: "Отклонена", color: "#e53935" },
-  failed: { label: "Неудачная", color: "#e53935" },
-};
+const getStatusMap = (t) => ({
+  new: { label: t("profile.status.new"), color: "#ffb300" },
+  pending: { label: t("profile.status.pending"), color: "#ffb300" },
+  processing: { label: t("profile.status.processing"), color: "#4ade80" },
+  completed: { label: t("profile.status.completed"), color: "#29b352" },
+  cancelled: { label: t("profile.status.cancelled"), color: "#e53935" },
+  rejected: { label: t("profile.status.rejected"), color: "#e53935" },
+  failed: { label: t("profile.status.failed"), color: "#e53935" },
+});
 
 // Exchange Details Modal Component
 function ExchangeDetailsModal({ exchange, onClose }) {
+  const { t } = useLanguage();
   if (!exchange) return null;
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleString("ru-RU", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleString("ru-RU", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch (error) {
+      return dateString;
+    }
   };
 
   const getStatusText = (status) => {
+    const statusMap = getStatusMap(t);
     return statusMap[status]?.label || status;
   };
 
   const getStatusColor = (status) => {
+    const statusMap = getStatusMap(t);
     return statusMap[status]?.color || "#ffb300";
   };
 
@@ -55,7 +64,7 @@ function ExchangeDetailsModal({ exchange, onClose }) {
     <div className={s.modalOverlay} onClick={onClose}>
       <div className={s.detailsModal} onClick={(e) => e.stopPropagation()}>
         <div className={s.modalHeader}>
-          <h3>Детали обмена #{exchange.id}</h3>
+          <h3>{t("profile.exchangeDetails.title", { id: exchange.id })}</h3>
           <button className={s.closeBtn} onClick={onClose}>
             ×
           </button>
@@ -64,37 +73,37 @@ function ExchangeDetailsModal({ exchange, onClose }) {
         <div className={s.modalBody}>
           <div className={s.detailsGrid}>
             <div className={s.detailSection}>
-              <h4>Информация об обмене</h4>
+              <h4>{t("profile.exchangeDetails.exchangeInfo")}</h4>
               {exchange.bid_id && (
                 <div className={s.detailItem}>
-                  <label>ID заявки</label>
+                  <label>{t("profile.exchangeDetails.bidId")}</label>
                   <span>{exchange.bid_id}</span>
                 </div>
               )}
               <div className={s.detailItem}>
-                <label>Направление</label>
+                <label>{t("profile.exchangeDetails.direction")}</label>
                 <span>
                   {exchange.from_currency} → {exchange.to_currency}
                 </span>
               </div>
               <div className={s.detailItem}>
-                <label>Сумма отправки</label>
+                <label>{t("profile.exchangeDetails.sendAmount")}</label>
                 <span>
                   {exchange.amount_give} {exchange.from_currency}
                 </span>
               </div>
               <div className={s.detailItem}>
-                <label>Сумма получения</label>
+                <label>{t("profile.exchangeDetails.receiveAmount")}</label>
                 <span>
                   {exchange.amount_get.toFixed(6)} {exchange.to_currency}
                 </span>
               </div>
               <div className={s.detailItem}>
-                <label>Курс обмена</label>
+                <label>{t("profile.exchangeDetails.rate")}</label>
                 <span>{exchange.exchange_rate}</span>
               </div>
               <div className={s.detailItem}>
-                <label>Статус</label>
+                <label>{t("profile.exchangeDetails.status")}</label>
                 <span
                   className={s.statusBadge}
                   style={{ backgroundColor: getStatusColor(exchange.status) }}
@@ -105,47 +114,47 @@ function ExchangeDetailsModal({ exchange, onClose }) {
             </div>
 
             <div className={s.detailSection}>
-              <h4>Детали транзакции</h4>
+              <h4>{t("profile.exchangeDetails.transactionDetails")}</h4>
               <div className={s.detailItem}>
-                <label>Email для обмена</label>
+                <label>{t("profile.exchangeDetails.email")}</label>
                 <span>{exchange.email_used}</span>
               </div>
               <div className={s.detailItem}>
-                <label>Адрес получения</label>
+                <label>{t("profile.exchangeDetails.receiveAddress")}</label>
                 <span className={s.address}>{exchange.wallet_address}</span>
               </div>
               {exchange.payment_address && (
                 <div className={s.detailItem}>
-                  <label>Адрес для оплаты</label>
+                  <label>{t("profile.exchangeDetails.paymentAddress")}</label>
                   <span className={s.address}>{exchange.payment_address}</span>
                 </div>
               )}
             </div>
 
             <div className={s.detailSection}>
-              <h4>Временные метки</h4>
+              <h4>{t("profile.exchangeDetails.timestamps")}</h4>
               <div className={s.detailItem}>
-                <label>Создан</label>
+                <label>{t("profile.exchangeDetails.created")}</label>
                 <span>{formatDate(exchange.created_at)}</span>
               </div>
               <div className={s.detailItem}>
-                <label>Обновлен</label>
+                <label>{t("profile.exchangeDetails.updated")}</label>
                 <span>{formatDate(exchange.updated_at)}</span>
               </div>
             </div>
 
             {exchange.wirebit_url && (
               <div className={s.detailSection}>
-                <h4>Дополнительно</h4>
+                <h4>{t("profile.exchangeDetails.additional")}</h4>
                 <div className={s.detailItem}>
-                  <label>Ссылка Wirebit</label>
+                  <label>{t("profile.exchangeDetails.wirebitLink")}</label>
                   <a
                     href={exchange.wirebit_url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className={s.wirebitLink}
                   >
-                    Открыть в Wirebit →
+                    {t("profile.exchangeDetails.openInWirebit")} →
                   </a>
                 </div>
               </div>
@@ -158,6 +167,7 @@ function ExchangeDetailsModal({ exchange, onClose }) {
 }
 
 function ProfilePageContent() {
+  const { t } = useLanguage();
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [verificationStatus, setVerificationStatus] = useState(null);
@@ -175,12 +185,12 @@ function ProfilePageContent() {
       setHistory(data || []);
     } catch (error) {
       console.error("Error loading history:", error);
-      setError("Ошибка загрузки истории");
-      toast.error("Не удалось загрузить историю обменов");
+      setError(t("profile.errors.historyLoadFailed"));
+      toast.error(t("profile.errors.historyLoadFailed"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   const loadVerificationStatus = useCallback(async () => {
     try {
@@ -201,9 +211,9 @@ function ProfilePageContent() {
 
   const handleLogout = useCallback(() => {
     logout();
-    toast.success("Вы успешно вышли из аккаунта");
+    toast.success(t("profile.logoutSuccess"));
     router.push("/");
-  }, [logout, router]);
+  }, [logout, router, t]);
 
   const formatDate = (dateString) => {
     try {
@@ -260,7 +270,7 @@ function ProfilePageContent() {
       return (
         <span className={s.verificationBadge}>
           <FiClock className={s.icon} />
-          Загрузка...
+          {t("profile.verification.loading")}
         </span>
       );
     }
@@ -269,7 +279,7 @@ function ProfilePageContent() {
       return (
         <span className={`${s.verificationBadge} ${s.unverified}`}>
           <FiAlertCircle className={s.icon} />
-          Не верифицирован
+          {t("profile.verification.notVerified")}
         </span>
       );
     }
@@ -279,28 +289,28 @@ function ProfilePageContent() {
         return (
           <span className={`${s.verificationBadge} ${s.verified}`}>
             <FiCheckCircle className={s.icon} />
-            Верифицирован
+            {t("profile.verification.verified")}
           </span>
         );
       case "pending":
         return (
           <span className={`${s.verificationBadge} ${s.pending}`}>
             <FiClock className={s.icon} />
-            На рассмотрении
+            {t("profile.verification.pending")}
           </span>
         );
       case "rejected":
         return (
           <span className={`${s.verificationBadge} ${s.rejected}`}>
             <FiAlertCircle className={s.icon} />
-            Отклонено
+            {t("profile.verification.rejected")}
           </span>
         );
       default:
         return (
           <span className={`${s.verificationBadge} ${s.unverified}`}>
             <FiAlertCircle className={s.icon} />
-            Не верифицирован
+            {t("profile.verification.notVerified")}
           </span>
         );
     }
@@ -314,9 +324,9 @@ function ProfilePageContent() {
   const getVerificationBlockContent = () => {
     if (verificationLoading) {
       return {
-        title: "Проверка статуса верификации...",
-        description: "Загружаем информацию о верификации вашего аккаунта",
-        buttonText: "Загрузка...",
+        title: t("profile.verification.checkingStatus"),
+        description: t("profile.verification.loadingInfo"),
+        buttonText: t("profile.verification.loading"),
         disabled: true,
       };
     }
@@ -326,30 +336,27 @@ function ProfilePageContent() {
       verificationStatus.verification_status === "not_requested"
     ) {
       return {
-        title: "Ваш аккаунт не верифицирован",
-        description:
-          "Для проведения операций с рублевыми платежными системами необходимо пройти верификацию. Это займёт всего пару минут.",
-        buttonText: "Верифицировать аккаунт",
+        title: t("profile.verification.notVerifiedTitle"),
+        description: t("profile.verification.notVerifiedDesc"),
+        buttonText: t("profile.verification.verifyButton"),
         disabled: false,
       };
     }
 
     if (verificationStatus.verification_status === "pending") {
       return {
-        title: "Верификация на рассмотрении",
-        description:
-          "Ваша заявка на верификацию находится в обработке. Ожидайте рассмотрения администратором.",
-        buttonText: "Перейти к верификации",
+        title: t("profile.verification.pendingTitle"),
+        description: t("profile.verification.pendingDesc"),
+        buttonText: t("profile.verification.checkStatus"),
         disabled: false,
       };
     }
 
     if (verificationStatus.verification_status === "rejected") {
       return {
-        title: "Верификация отклонена",
-        description:
-          "Ваша заявка на верификацию была отклонена. Обратитесь в службу поддержки или подайте новую заявку.",
-        buttonText: "Повторить верификацию",
+        title: t("profile.verification.rejectedTitle"),
+        description: t("profile.verification.rejectedDesc"),
+        buttonText: t("profile.verification.retryButton"),
         disabled: false,
       };
     }
@@ -386,7 +393,7 @@ function ProfilePageContent() {
         </div>
         <div className={s.info}>
           <div className={s.username}>
-            {user?.username || "Пользователь"}
+            {user?.username || t("profile.defaultUsername")}
             {getVerificationBadge()}
           </div>
           <div className={s.email}>{user?.email || ""}</div>
@@ -394,7 +401,7 @@ function ProfilePageContent() {
         <button
           className={s.logoutBtn}
           onClick={handleLogout}
-          title="Выйти из аккаунта"
+          title={t("common.logout")}
         >
           <FiLogOut size={20} />
         </button>
@@ -403,21 +410,21 @@ function ProfilePageContent() {
       {/* Admin Panel Buttons */}
       {isAdmin() && (
         <div className={s.adminPanel}>
-          <h3>Панель администратора</h3>
+          <h3>{t("profile.adminPanel")}</h3>
           <div className={s.adminButtons}>
             <button
               className={s.adminBtn}
               onClick={() => router.push("/admin")}
             >
               <FiSettings size={20} />
-              <span>Админ-панель</span>
+              <span>{t("profile.adminDashboard")}</span>
             </button>
             <button
               className={s.adminBtn}
               onClick={() => router.push("/admin/exchanges")}
             >
               <FiTrendingUp size={20} />
-              <span>Управление обменами</span>
+              <span>{t("profile.manageExchanges")}</span>
             </button>
           </div>
         </div>
@@ -441,27 +448,28 @@ function ProfilePageContent() {
       )}
 
       {/* Exchange History Section */}
-      <h1 className={s.title}>История обменов</h1>
+      <h1 className={s.title}>{t("profile.history")}</h1>
 
       {loading ? (
-        <div className={s.loading}>Загрузка истории...</div>
+        <div className={s.loading}>{t("profile.loadingHistory")}</div>
       ) : error ? (
         <div className={s.error}>
           {error}
-          <button onClick={handleRetry} style={{ marginLeft: "10px" }}>
-            Попробовать снова
+          <button onClick={handleRetry} className={s.retryButton}>
+            {t("profile.retry")}
           </button>
         </div>
       ) : history.length === 0 ? (
         <div className={s.emptyState}>
-          <p>У вас пока нет истории обменов</p>
+          <p>{t("profile.noHistory")}</p>
           <button onClick={handleNavigateToExchange} className={s.exchangeBtn}>
-            Создать первый обмен
+            {t("profile.createFirstExchange")}
           </button>
         </div>
       ) : (
         <ul className={s.list}>
           {history.map((item) => {
+            const statusMap = getStatusMap(t);
             const status = statusMap[item.status] || statusMap.new;
             return (
               <li

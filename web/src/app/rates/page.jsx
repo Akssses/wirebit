@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import s from "@/styles/RatesPage.module.scss";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 async function fetchRates() {
   try {
@@ -39,43 +40,35 @@ function RatesPageContent() {
   const [rates, setRates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { t } = useLanguage();
 
   useEffect(() => {
-    fetchRates()
-      .then((data) => {
-        setRates(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setLoading(false);
-      });
+    loadRates();
   }, []);
 
+  async function loadRates() {
+    try {
+      const data = await fetchRates();
+      setRates(data);
+    } catch (err) {
+      setError(t("rates.error"));
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   if (loading) {
-    return (
-      <main className={s.wrapper}>
-        <h1 className={s.pageTitle}>Курсы обмена</h1>
-        <div className={s.loading}>
-          <div className={s.spinner}></div>
-          Загрузка курсов...
-        </div>
-      </main>
-    );
+    return <div className={s.loading}>{t("common.loading")}</div>;
   }
 
   if (error) {
-    return (
-      <main className={s.wrapper}>
-        <h1 className={s.pageTitle}>Курсы обмена</h1>
-        <div className={s.error}>Ошибка загрузки курсов: {error}</div>
-      </main>
-    );
+    return <div className={s.error}>{error}</div>;
   }
 
   return (
     <main className={s.wrapper}>
-      <h1 className={s.pageTitle}>Курсы обмена</h1>
+      <h1 className={s.pageTitle}>{t("rates.title")}</h1>
 
       <div className={s.grid}>
         {rates.map((rate, index) => (
@@ -86,25 +79,27 @@ function RatesPageContent() {
             </h2>
 
             <p className={s.rate}>
-              Коэффициент:&nbsp;
+              {t("rates.coefficient")}:&nbsp;
               <strong>{rate.rate_in}</strong>
               &nbsp;→&nbsp;
               <strong>{rate.rate_out}</strong>
             </p>
 
             <p className={s.available}>
-              Доступно:&nbsp;
+              {t("rates.available")}:&nbsp;
               <span>
                 {Intl.NumberFormat("ru-RU").format(rate.available_amount)}
               </span>
             </p>
 
             <p className={s.limits}>
-              Мин: {rate.min_amount},&nbsp; Макс:&nbsp;
+              {t("rates.min")}: {rate.min_amount},&nbsp; {t("rates.max")}:&nbsp;
               {rate.max_amount}
             </p>
 
-            {rate.is_manual && <span className={s.manual}>Ручной обмен</span>}
+            {rate.is_manual && (
+              <span className={s.manual}>{t("rates.manualExchange")}</span>
+            )}
           </article>
         ))}
       </div>

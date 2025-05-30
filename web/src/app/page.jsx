@@ -5,13 +5,15 @@ import { FaGlobe, FaCommentDots } from "react-icons/fa";
 import s from "@/styles/HomePage.module.scss";
 import LanguageModal from "@/components/shared/LanguageModal/LanguageModal";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 function HomePageContent() {
   const [langModalOpen, setLangModalOpen] = useState(false);
-  const [lang, setLang] = useState("ru");
+  const { language, changeLanguage, t } = useLanguage();
 
   const handleSelectLang = (code) => {
-    setLang(code);
+    changeLanguage(code);
+    setLangModalOpen(false);
   };
 
   return (
@@ -23,7 +25,7 @@ function HomePageContent() {
             alt="WireBit.net"
             width={200}
           />
-          <h1 className={s.title}>Обмен криптовалют на выгодных условиях</h1>
+          <h1 className={s.title}>{t("slogan")}</h1>
 
           <div className={s.controls}>
             <button
@@ -31,7 +33,7 @@ function HomePageContent() {
               onClick={() => setLangModalOpen(true)}
             >
               <FaGlobe />
-              <span>{lang.toUpperCase()}</span>
+              <span>{language.toUpperCase()}</span>
             </button>
 
             <LanguageModal
@@ -41,7 +43,7 @@ function HomePageContent() {
             />
           </div>
 
-          <p className={s.pairs}>zelle-usdt/rub, wire transfer-usdt/rub</p>
+          <p className={s.pairs}>{t("home.supportedPairs")}</p>
         </div>
       </section>
 
@@ -49,31 +51,26 @@ function HomePageContent() {
         <div className={s.supportInfo}>
           <FaCommentDots size={24} className={s.supportIcon} />
           <div>
-            <h2 className={s.supportTitle}>Техподдержка</h2>
-            <p className={s.supportSubtitle}>Решим ваш вопрос</p>
+            <h2 className={s.supportTitle}>{t("home.support.title")}</h2>
+            <p className={s.supportSubtitle}>{t("home.support.subtitle")}</p>
           </div>
         </div>
         <a href="mailto:info@wirebit.net" className={s.supportButton}>
-          Написать
+          {t("home.support.button")}
         </a>
       </section>
 
       <section className={s.about}>
         <h2 className={s.aboutTitle}>
-          О нас <span className={s.dot} />
+          {t("home.about.title")} <span className={s.dot} />
         </h2>
-        <p className={s.aboutText}>
-          Wirebit.net — ваш надёжный партнёр в сфере обмена криптовалют и
-          фиатных денег. Мы предлагаем выгодные курсы, большой выбор направлений
-          для обмена и быстрые транзакции. Наша команда профессионалов всегда
-          поможет вам с любым вопросом.
-        </p>
+        <p className={s.aboutText}>{t("home.about.text")}</p>
       </section>
     </div>
   );
 }
 
-export default function Home() {
+export default function HomePage() {
   return (
     <ProtectedRoute>
       <HomePageContent />

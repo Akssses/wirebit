@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext.jsx";
 
 export default function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -14,30 +14,11 @@ export default function ProtectedRoute({ children }) {
     }
   }, [isAuthenticated, loading, router]);
 
-  // Показываем загрузку во время проверки авторизации
+  // Показываем загрузку, пока проверяется аутентификация
   if (loading) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          minHeight: "100vh",
-          color: "#fff",
-          fontSize: "18px",
-        }}
-      >
-        Проверка авторизации...
-      </div>
-    );
+    return <div>Loading...</div>;
   }
 
-  // Если пользователь не авторизован, не рендерим содержимое
-  // (перенаправление произойдет в useEffect)
-  if (!isAuthenticated) {
-    return null;
-  }
-
-  // Если пользователь авторизован, показываем содержимое
-  return children;
+  // Если пользователь аутентифицирован, показываем содержимое
+  return isAuthenticated ? children : null;
 }
