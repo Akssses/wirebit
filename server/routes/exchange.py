@@ -1,6 +1,8 @@
 from fastapi import APIRouter, HTTPException, Query, Depends
 from typing import List, Optional
 import logging
+import requests
+from fastapi.responses import Response
 
 from schemas.exchange import (
     DirectionResponse,
@@ -210,4 +212,29 @@ async def get_status(bid_id: str = Query(...)):
         return StatusResponse(
             success=False,
             message=str(e)
+        )
+
+
+@router.get("/rates")
+async def get_rates():
+    """Get exchange rates from Wirebit XML feed"""
+    try:
+        response = requests.get('https://wirebit.net/request-exportxml.xml', 
+                              headers={'Accept': 'application/xml'})
+        
+        if not response.ok:
+            raise HTTPException(
+                status_code=response.status_code,
+                detail="Failed to fetch rates from Wirebit"
+            )
+        
+        return Response(
+            content=response.text,
+            media_type="application/xml"
+        )
+    except Exception as e:
+        logger.error(f"Error fetching rates: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
         )
