@@ -7,6 +7,9 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { FaGlobe } from "react-icons/fa";
+import { useLanguage } from "@/contexts/LanguageContext";
+import LanguageModal from "@/components/shared/LanguageModal/LanguageModal";
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -17,6 +20,14 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { login, isAuthenticated } = useAuth();
+
+  const [langModalOpen, setLangModalOpen] = useState(false);
+  const { language, changeLanguage, t } = useLanguage();
+
+  const handleSelectLang = (code) => {
+    changeLanguage(code);
+    setLangModalOpen(false);
+  };
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -72,6 +83,22 @@ export default function LoginPage() {
       <div className={s.authBox}>
         <div className={s.header}>
           <h2>Вход</h2>
+        </div>
+
+        <div className={s.controls}>
+          <button
+            className={s.langButton}
+            onClick={() => setLangModalOpen(true)}
+          >
+            <FaGlobe />
+            <span>{language.toUpperCase()}</span>
+          </button>
+
+          <LanguageModal
+            isOpen={langModalOpen}
+            onClose={() => setLangModalOpen(false)}
+            onSelect={handleSelectLang}
+          />
         </div>
 
         <form onSubmit={handleSubmit}>
