@@ -28,7 +28,8 @@ logger = logging.getLogger(__name__)
 app = FastAPI(
     title="Wirebit Exchange API",
     description="Backend API for cryptocurrency exchange integration with Wirebit",
-    version="1.0.0"
+    version="1.0.0",
+    root_path="/api"
 )
 
 # Configure CORS
