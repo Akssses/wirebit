@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 app = FastAPI(
     title="Wirebit Exchange API",
     description="Backend API for cryptocurrency exchange integration with Wirebit",
-    version="1.0.0",
+    version="1.0.0"
 )
 
 # Configure CORS
@@ -47,12 +47,12 @@ try:
 except Exception as e:
     logger.error(f"Error creating database tables: {str(e)}")
 
-# Include routers with prefixes
-app.include_router(exchange.router, prefix="/api")
-app.include_router(auth.router, prefix="/api")
-app.include_router(history.router, prefix="/api")
-app.include_router(verification.router, prefix="/api")
-app.include_router(admin.router, prefix="/api")
+# Include routers
+app.include_router(exchange.router)
+app.include_router(auth.router)
+app.include_router(history.router)
+app.include_router(verification.router)
+app.include_router(admin.router)
 
 
 @app.exception_handler(Exception)
