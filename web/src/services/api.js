@@ -1,7 +1,7 @@
 import authApi from "./authApi";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+  process.env.NEXT_PUBLIC_API_URL || "https://freedurov.lol/api";
 
 class ApiService {
   async request(endpoint, options = {}) {

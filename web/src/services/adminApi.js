@@ -1,6 +1,6 @@
 import authApi from "./authApi";
 
-const API_BASE_URL = "http://localhost:8000";
+const API_BASE_URL = "https://freedurov.lol";
 
 class AdminApi {
   getHeaders() {
