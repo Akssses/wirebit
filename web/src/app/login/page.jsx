@@ -52,18 +52,18 @@ export default function LoginPage() {
     setLoading(true);
 
     if (!formData.username || !formData.password) {
-      setError("Пожалуйста, заполните все поля");
+      setError(t("auth.errors.required"));
       setLoading(false);
       return;
     }
 
     try {
       await login(formData);
-      toast.success("Вход выполнен успешно!");
+      toast.success(t("auth.loginSuccess"));
       router.push("/exchange");
     } catch (error) {
       console.error("Login error:", error);
-      setError(error.message || "Ошибка входа. Проверьте данные.");
+      setError(t("auth.errors.invalidCredentials"));
     } finally {
       setLoading(false);
     }
@@ -77,12 +77,12 @@ export default function LoginPage() {
           alt="WireBit Logo"
           className={s.logo}
         />
-        <p className={s.slogan}>Обмен криптовалют на выгодных условиях</p>
+        <p className={s.slogan}>{t("slogan")}</p>
       </div>
 
       <div className={s.authBox}>
         <div className={s.header}>
-          <h2>Вход</h2>
+          <h2>{t("auth.loginTitle")}</h2>
         </div>
 
         <div className={s.controls}>
@@ -103,25 +103,25 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit}>
           <div className={s.formGroup}>
-            <label>Имя пользователя</label>
+            <label>{t("common.username")}</label>
             <input
               type="text"
               name="username"
               value={formData.username}
               onChange={handleChange}
-              placeholder="Введите имя пользователя"
+              placeholder={t("auth.errors.usernameRequired")}
               disabled={loading}
             />
           </div>
 
           <div className={s.formGroup}>
-            <label>Пароль</label>
+            <label>{t("common.password")}</label>
             <input
               type="password"
               name="password"
               value={formData.password}
               onChange={handleChange}
-              placeholder="Введите пароль"
+              placeholder={t("auth.errors.passwordRequired")}
               disabled={loading}
             />
           </div>
@@ -129,12 +129,13 @@ export default function LoginPage() {
           {error && <div className={s.error}>{error}</div>}
 
           <button type="submit" className={s.loginBtn} disabled={loading}>
-            {loading ? "Вход..." : "Войти"}
+            {loading ? t("common.loading") : t("auth.loginButton")}
           </button>
         </form>
 
         <p className={s.noAccount}>
-          Нет аккаунта? <Link href="/register">Зарегистрироваться</Link>
+          {t("auth.noAccount")}{" "}
+          <Link href="/register">{t("common.register")}</Link>
         </p>
       </div>
 

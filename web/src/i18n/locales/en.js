@@ -84,7 +84,12 @@ export default {
     },
     verification: {
       required: "Verification required",
-      pending: "Verification request is being processed",
+      pending: {
+        title: "Verification Pending",
+        message:
+          "Your verification request is being processed. Please wait for administrator approval to proceed with this exchange.",
+        action: "Check Status",
+      },
       rejected: "Verification request was rejected",
     },
   },
@@ -198,6 +203,38 @@ export default {
     about: {
       title: "About Us",
       text: "Wirebit.net is your reliable partner in cryptocurrency and fiat money exchange. We offer competitive rates, a wide range of exchange directions, and fast transactions. Our team of professionals is always ready to help you with any question.",
+    },
+  },
+  verification: {
+    title: "Verify Account",
+    chooseOption: "Choose a suitable option:",
+    optionOne: {
+      title: "Option One — Exchange on Computer",
+      description:
+        "Upload a photo of the front side of the card against the background of the transaction screen. The first and last name should be clearly visible, card numbers can be covered.",
+    },
+    optionTwo: {
+      title: "Option Two — Exchange on Phone",
+      description:
+        "Upload a photo of the front side of the card against a paper background, indicating the application number and date. The first and last name should be clearly visible, card numbers can be covered.",
+    },
+    fileRequirements: "File Requirements",
+    fileFormats: "(.GIF, .JPG, .JPEG, .JPE, .PNG, max 128MB)",
+    selectFile: "Select File",
+    selectedFile: "Selected file",
+    fileSize: "Size",
+    submit: "Submit Request",
+    goToExchange: "Go to Exchange",
+    backToProfile: "Back to Profile",
+    approvedMessage:
+      "Your account has been successfully verified! You can now perform all types of exchanges.",
+    submitSuccess:
+      "Verification request submitted! Please wait for administrator review.",
+    errors: {
+      invalidFileType: "Invalid file type. Allowed: GIF, JPG, JPEG, PNG",
+      fileTooLarge: "File size exceeds 128MB",
+      fileRequired: "Please select a file",
+      submitFailed: "Failed to submit request",
     },
   },
 };

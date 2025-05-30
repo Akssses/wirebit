@@ -8,12 +8,14 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import s from "@/styles/VerificationPage.module.scss";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 function VerificationPageContent() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState(null);
   const [error, setError] = useState("");
+  const { t } = useLanguage();
 
   const router = useRouter();
 
@@ -42,7 +44,7 @@ function VerificationPageContent() {
     // Validate file type
     const allowedTypes = ["image/gif", "image/jpeg", "image/jpg", "image/png"];
     if (!allowedTypes.includes(file.type)) {
-      setError("Недопустимый тип файла. Разрешены: GIF, JPG, JPEG, PNG");
+      setError(t("verification.errors.invalidFileType"));
       setSelectedFile(null);
       return;
     }
@@ -50,7 +52,7 @@ function VerificationPageContent() {
     // Validate file size (128MB)
     const maxSize = 128 * 1024 * 1024;
     if (file.size > maxSize) {
-      setError("Размер файла превышает 128МБ");
+      setError(t("verification.errors.fileTooLarge"));
       setSelectedFile(null);
       return;
     }
@@ -63,7 +65,7 @@ function VerificationPageContent() {
     setError("");
 
     if (!selectedFile) {
-      setError("Пожалуйста, выберите файл");
+      setError(t("verification.errors.fileRequired"));
       return;
     }
 
@@ -71,9 +73,7 @@ function VerificationPageContent() {
 
     try {
       await verificationApi.submitVerificationRequest(selectedFile);
-      toast.success(
-        "Заявка на верификацию отправлена! Ожидайте рассмотрения администратором."
-      );
+      toast.success(t("verification.submitSuccess"));
 
       // Reload verification status
       await loadVerificationStatus();
@@ -83,7 +83,7 @@ function VerificationPageContent() {
       e.target.reset();
     } catch (error) {
       console.error("Verification submission error:", error);
-      setError(error.message || "Ошибка отправки заявки");
+      setError(error.message || t("verification.errors.submitFailed"));
     } finally {
       setLoading(false);
     }
@@ -96,17 +96,17 @@ function VerificationPageContent() {
       case "pending":
         return {
           type: "warning",
-          text: "Ваша заявка на верификацию находится в обработке. Ожидайте рассмотрения администратором.",
+          text: t("profile.verification.pendingDesc"),
         };
       case "approved":
         return {
           type: "success",
-          text: "Ваш аккаунт успешно верифицирован! Теперь вы можете совершать все виды обменов.",
+          text: t("verification.approvedMessage"),
         };
       case "rejected":
         return {
           type: "error",
-          text: "Ваша заявка на верификацию была отклонена. Обратитесь в службу поддержки для уточнения причин.",
+          text: t("profile.verification.rejectedDesc"),
         };
       default:
         return null;
@@ -118,7 +118,7 @@ function VerificationPageContent() {
   return (
     <div className={s.container}>
       <div className={s.content}>
-        <h1 className={s.title}>Верифицировать счет</h1>
+        <h1 className={s.title}>{t("verification.title")}</h1>
 
         {statusMessage && (
           <div className={`${s.statusMessage} ${s[statusMessage.type]}`}>
@@ -129,60 +129,54 @@ function VerificationPageContent() {
         {verificationStatus?.verification_status === "approved" ? (
           <div className={s.successContent}>
             <div className={s.successIcon}>✓</div>
-            <p>Ваш аккаунт верифицирован</p>
+            <p>{t("profile.verification.verified")}</p>
             <button
               onClick={() => router.push("/exchange")}
               className={s.continueBtn}
             >
-              Перейти к обменам
+              {t("verification.goToExchange")}
             </button>
           </div>
         ) : verificationStatus?.verification_status === "pending" ? (
           <div className={s.pendingContent}>
             <div className={s.pendingIcon}>⏳</div>
-            <p>Заявка в обработке</p>
+            <p>{t("profile.verification.pending")}</p>
             <button
               onClick={() => router.push("/profile")}
               className={s.continueBtn}
             >
-              Вернуться в профиль
+              {t("verification.backToProfile")}
             </button>
           </div>
         ) : (
           <div className={s.verificationForm}>
             <div className={s.instructions}>
-              <h2>Выберите подходящий вариант:</h2>
+              <h2>{t("verification.chooseOption")}</h2>
 
               <div className={s.option}>
-                <h3>Первый вариант — обмен на компьютере.</h3>
-                <p>
-                  Загрузите фото лицевой стороны карты на фоне экрана сделки. На
-                  фото должны быть хорошо видны фамилия и имя, цифры номера
-                  карты можно прикрыть.
-                </p>
+                <h3>{t("verification.optionOne.title")}</h3>
+                <p>{t("verification.optionOne.description")}</p>
               </div>
 
               <div className={s.option}>
-                <h3>Второй вариант — обмен с телефона.</h3>
-                <p>
-                  Загрузите фото лицевой стороны карты на фоне листа бумаги,
-                  указав номер заявки и дату. На фото должны быть хорошо видны
-                  фамилия и имя, цифры номера карты можно прикрыть.
-                </p>
+                <h3>{t("verification.optionTwo.title")}</h3>
+                <p>{t("verification.optionTwo.description")}</p>
               </div>
 
               <div className={s.fileInfo}>
                 <p>
-                  <strong>Требования к файлу:</strong>
+                  <strong>{t("verification.fileRequirements")}:</strong>
                 </p>
-                <p>(.GIF, .JPG, .JPEG, .JPE, .PNG, макс. 128МБ)</p>
+                <p>{t("verification.fileFormats")}</p>
               </div>
             </div>
 
             <form onSubmit={handleSubmit} className={s.form}>
               <div className={s.fileUpload}>
                 <label htmlFor="verificationFile" className={s.fileLabel}>
-                  {selectedFile ? selectedFile.name : "Выбрать файл"}
+                  {selectedFile
+                    ? selectedFile.name
+                    : t("verification.selectFile")}
                 </label>
                 <input
                   type="file"
@@ -196,9 +190,12 @@ function VerificationPageContent() {
 
               {selectedFile && (
                 <div className={s.fileInfo}>
-                  <p>Выбран файл: {selectedFile.name}</p>
                   <p>
-                    Размер: {(selectedFile.size / 1024 / 1024).toFixed(2)} МБ
+                    {t("verification.selectedFile")}: {selectedFile.name}
+                  </p>
+                  <p>
+                    {t("verification.fileSize")}:{" "}
+                    {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
                   </p>
                 </div>
               )}
@@ -210,7 +207,7 @@ function VerificationPageContent() {
                 className={s.submitBtn}
                 disabled={!selectedFile || loading}
               >
-                {loading ? "Отправка..." : "Отправить запрос"}
+                {loading ? t("common.loading") : t("verification.submit")}
               </button>
             </form>
           </div>
@@ -219,7 +216,7 @@ function VerificationPageContent() {
 
       <ToastContainer
         position="top-right"
-        autoClose={5000}
+        autoClose={3000}
         hideProgressBar={false}
         newestOnTop={false}
         closeOnClick

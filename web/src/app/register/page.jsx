@@ -55,28 +55,28 @@ export default function RegisterPage() {
       !formData.password ||
       !formData.confirmPassword
     ) {
-      setError("Пожалуйста, заполните все поля");
+      setError(t("auth.errors.required"));
       return false;
     }
 
     if (formData.username.length < 3) {
-      setError("Имя пользователя должно содержать минимум 3 символа");
+      setError(t("auth.usernameLength"));
       return false;
     }
 
     if (formData.password.length < 6) {
-      setError("Пароль должен содержать минимум 6 символов");
+      setError(t("auth.passwordLength"));
       return false;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError("Пароли не совпадают");
+      setError(t("auth.errors.passwordMismatch"));
       return false;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      setError("Введите корректный email адрес");
+      setError(t("auth.errors.invalidEmail"));
       return false;
     }
 
@@ -100,11 +100,11 @@ export default function RegisterPage() {
         password: formData.password,
       });
 
-      toast.success("Регистрация прошла успешно! Добро пожаловать!");
+      toast.success(t("auth.registerSuccess"));
       router.push("/exchange");
     } catch (error) {
       console.error("Registration error:", error);
-      setError(error.message || "Произошла ошибка при регистрации");
+      setError(t("auth.registrationFailed"));
     } finally {
       setLoading(false);
     }
@@ -118,12 +118,12 @@ export default function RegisterPage() {
           alt="WireBit Logo"
           className={s.logo}
         />
-        <p className={s.slogan}>Обмен криптовалют на выгодных условиях</p>
+        <p className={s.slogan}>{t("slogan")}</p>
       </div>
 
       <div className={s.authBox}>
         <div className={s.header}>
-          <h2>Регистрация</h2>
+          <h2>{t("auth.registerTitle")}</h2>
         </div>
 
         <div className={s.controls}>
@@ -146,64 +146,64 @@ export default function RegisterPage() {
           {error && <div className={s.error}>{error}</div>}
 
           <div className={s.formGroup}>
-            <label>Имя пользователя</label>
+            <label>{t("common.username")}</label>
             <input
               type="text"
               name="username"
               value={formData.username}
               onChange={handleChange}
-              placeholder="Введите имя пользователя"
+              placeholder={t("auth.errors.usernameRequired")}
               disabled={loading}
               required
             />
           </div>
 
           <div className={s.formGroup}>
-            <label>Email</label>
+            <label>{t("common.email")}</label>
             <input
               type="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
-              placeholder="Введите email"
+              placeholder={t("auth.errors.emailRequired")}
               disabled={loading}
               required
             />
           </div>
 
           <div className={s.formGroup}>
-            <label>Пароль</label>
+            <label>{t("common.password")}</label>
             <input
               type="password"
               name="password"
               value={formData.password}
               onChange={handleChange}
-              placeholder="Введите пароль (минимум 6 символов)"
+              placeholder={t("auth.passwordMinLength")}
               disabled={loading}
               required
             />
           </div>
 
           <div className={s.formGroup}>
-            <label>Повторите пароль</label>
+            <label>{t("auth.confirmPassword")}</label>
             <input
               type="password"
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
-              placeholder="Повторите пароль"
+              placeholder={t("auth.errors.confirmPasswordRequired")}
               disabled={loading}
               required
             />
           </div>
 
           <button type="submit" className={s.loginBtn} disabled={loading}>
-            {loading ? "Регистрация..." : "Зарегистрироваться"}
+            {loading ? t("common.loading") : t("auth.registerButton")}
           </button>
         </form>
 
         <p className={s.noAccount}>
-          Уже есть аккаунт? <Link href="/login">Войти</Link>
+          {t("auth.haveAccount")} <Link href="/login">{t("common.login")}</Link>
         </p>
       </div>
 

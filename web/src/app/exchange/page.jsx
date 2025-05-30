@@ -242,10 +242,9 @@ function ExchangePageContent() {
     if (!verificationStatus) {
       return {
         type: "verification",
-        title: "Требуется верификация",
-        message:
-          "Для обмена Zelle USD на рублевые платежные системы необходимо пройти верификацию аккаунта.",
-        actionText: "Пройти верификацию",
+        title: t("exchange.verification.required"),
+        message: t("profile.verification.notVerifiedDesc"),
+        actionText: t("profile.verification.verifyButton"),
         actionLink: "/verification",
         canProceed: false,
       };
@@ -258,10 +257,9 @@ function ExchangePageContent() {
       case "pending":
         return {
           type: "pending",
-          title: "Верификация на рассмотрении",
-          message:
-            "Ваша заявка на верификацию находится в обработке. Дождитесь подтверждения администратора для совершения этого обмена.",
-          actionText: "Проверить статус",
+          title: t("exchange.verification.pending.title"),
+          message: t("exchange.verification.pending.message"),
+          actionText: t("exchange.verification.pending.action"),
           actionLink: "/verification",
           canProceed: false,
         };
@@ -269,10 +267,9 @@ function ExchangePageContent() {
       case "rejected":
         return {
           type: "rejected",
-          title: "Верификация отклонена",
-          message:
-            "Ваша заявка на верификацию была отклонена. Подайте новую заявку или обратитесь в службу поддержки.",
-          actionText: "Повторить верификацию",
+          title: t("exchange.verification.rejected"),
+          message: t("profile.verification.rejectedDesc"),
+          actionText: t("profile.verification.retryButton"),
           actionLink: "/verification",
           canProceed: false,
         };
@@ -280,10 +277,9 @@ function ExchangePageContent() {
       default:
         return {
           type: "verification",
-          title: "Требуется верификация",
-          message:
-            "Для обмена Zelle USD на рублевые платежные системы необходимо пройти верификацию аккаунта.",
-          actionText: "Пройти верификацию",
+          title: t("exchange.verification.required"),
+          message: t("profile.verification.notVerifiedDesc"),
+          actionText: t("profile.verification.verifyButton"),
           actionLink: "/verification",
           canProceed: false,
         };
