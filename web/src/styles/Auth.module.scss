@@ -50,6 +50,7 @@
     position: absolute;
     top: 20px;
     right: 20px;
+    color: white;
   }
 
   .header {
@@ -88,6 +89,18 @@
       background: #0d0d0d;
       border: 1px solid #444;
       color: white;
+
+      &:focus {
+        outline: none;
+        border: 1px solid #ffb321;
+        box-shadow: 0 0 10px #ffb321, 0 0 20px #ffb32166;
+      }
+
+      &:hover {
+        outline: none;
+        border: 1px solid #ffb321;
+        box-shadow: 0 0 10px #ffb321, 0 0 20px #ffb32166;
+      }
     }
   }
 

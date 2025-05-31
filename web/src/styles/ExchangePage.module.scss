@@ -206,7 +206,15 @@ $gray: #2a2a2a;
     transition: border 0.2s;
 
     &:focus {
-      border-color: $orange;
+      outline: none;
+      border: 1px solid #ffb321;
+      box-shadow: 0 0 10px #ffb321, 0 0 20px #ffb32166;
+    }
+
+    &:hover {
+      outline: none;
+      border: 1px solid #ffb321;
+      box-shadow: 0 0 10px #ffb321, 0 0 20px #ffb32166;
     }
 
     &:disabled {
@@ -240,10 +248,17 @@ $gray: #2a2a2a;
     font-size: 18px;
     color: #fff;
     cursor: pointer;
-    transition: border 0.2s;
 
     &:focus {
-      border-color: $orange;
+      outline: none;
+      border: 1px solid #ffb321;
+      box-shadow: 0 0 10px #ffb321, 0 0 20px #ffb32166;
+    }
+
+    &:hover {
+      outline: none;
+      border: 1px solid #ffb321;
+      box-shadow: 0 0 10px #ffb321, 0 0 20px #ffb32166;
     }
 
     &:disabled {
@@ -265,6 +280,18 @@ $gray: #2a2a2a;
     color: #fff;
     cursor: default;
     user-select: text;
+
+    &:focus {
+      outline: none;
+      border: 1px solid #ffb321;
+      box-shadow: 0 0 10px #ffb321, 0 0 20px #ffb32166;
+    }
+
+    &:hover {
+      outline: none;
+      border: 1px solid #ffb321;
+      box-shadow: 0 0 10px #ffb321, 0 0 20px #ffb32166;
+    }
   }
 
   .rate {
