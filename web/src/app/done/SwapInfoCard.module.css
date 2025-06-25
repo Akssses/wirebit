@@ -1,0 +1,72 @@
+.card {
+  max-width: 480px;
+  margin: 40px auto;
+  padding: 16px;
+  background: #1c1c1c;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+  color: #e0e0e0;
+  font-family: 'Roboto', sans-serif;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #c7b127; /* золотой */
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  padding: 0 4px;
+}
+
+.label {
+  color: #999;
+  font-size: 15px;
+}
+
+.value {
+  color: #fff;
+  font-weight: 500;
+  font-size: 15px;
+}
+
+.instruction {
+  margin: 36px 0 24px;
+  background: #262626;
+  padding: 20px;
+  border-radius: 10px;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.address {
+  word-break: break-all;
+  font-family: monospace;
+  margin: 10px 0;
+  color: #fff;
+  font-size: 15px;
+}
+
+.payAmount {
+  color: #4ade80;
+  font-weight: 600;
+}
+
+.qrWrapper {
+  text-align: center;
+  margin-top: 24px;
+}
+
+.qr {
+  width: 150px;
+  height: 150px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  border: 2px solid #555;
+  border-radius: 10px;
+}
